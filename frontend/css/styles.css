@@ -1,0 +1,176 @@
+/*
+ * CivicEvents – global styles
+ * ---------------------------------------------------------------
+ * Tailwind does most of the styling. This file only holds:
+ *  1. Design tokens (colours) copied from the CivicEvents design.
+ *  2. Base rules (font, focus rings, skip link).
+ *  3. Small reusable effects Tailwind can't express nicely
+ *     (skeleton shimmer, toast animation, reduced-motion support).
+ *
+ * Colours are stored as "L C H" numbers so Tailwind can add opacity:
+ *   bg-primary/10  →  oklch(36% 0.075 155 / 0.1)
+ */
+
+:root {
+  --radius: 0.75rem;
+
+  --background: 97.7% 0.008 85;          /* cream page background */
+  --foreground: 24% 0.012 60;            /* near-black text */
+  --card: 100% 0 0;                      /* white cards */
+  --card-foreground: 24% 0.012 60;
+
+  --primary: 36% 0.075 155;              /* deep forest green */
+  --primary-foreground: 98% 0.01 120;
+  --primary-soft: 94% 0.03 150;
+
+  --secondary: 66% 0.165 50;             /* warm orange */
+  --secondary-foreground: 20% 0.03 50;
+  --secondary-soft: 95% 0.04 65;
+
+  --muted: 95.5% 0.01 85;
+  --muted-foreground: 47% 0.015 60;
+
+  --accent: 94% 0.03 150;
+  --accent-foreground: 30% 0.07 155;
+
+  --destructive: 52% 0.19 27;
+  --destructive-foreground: 98% 0 0;
+  --destructive-soft: 95% 0.03 27;
+
+  --success: 50% 0.12 150;
+  --warning: 72% 0.15 75;
+
+  --border: 90% 0.012 85;
+  --input: 86% 0.014 85;
+  --ring: 66% 0.165 50;
+
+  --sidebar: 27% 0.055 155;              /* admin sidebar */
+  --sidebar-foreground: 93% 0.02 120;
+  --sidebar-accent: 34% 0.065 155;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  background-color: oklch(var(--background));
+  color: oklch(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Accessibility: visible keyboard focus ---------- */
+:focus-visible {
+  outline: 3px solid oklch(var(--ring));
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Skip link: hidden until a keyboard user tabs to it */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: oklch(var(--primary));
+  color: oklch(var(--primary-foreground));
+  font-weight: 600;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Screen-reader-only helper (Tailwind has sr-only too; kept for JS-built markup) */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Skeleton loaders ---------- */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: oklch(var(--muted));
+  border-radius: 0.5rem;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, oklch(100% 0 0 / 0.6), transparent);
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* ---------- Toasts ---------- */
+.toast-enter {
+  animation: toast-in 0.25s ease-out both;
+}
+.toast-leave {
+  animation: toast-out 0.2s ease-in both;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes toast-out {
+  to { opacity: 0; transform: translateY(8px); }
+}
+
+/* ---------- Modal ---------- */
+.modal-backdrop {
+  animation: fade-in 0.15s ease-out both;
+}
+.modal-panel {
+  animation: toast-in 0.2s ease-out both;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---------- Auth pages: photo panel with green fallback ---------- */
+.auth-photo {
+  background-color: oklch(var(--primary));
+  background-image:
+    linear-gradient(to top, oklch(27% 0.055 155 / 0.85), oklch(27% 0.055 155 / 0.15) 60%),
+    url("../assets/images/auth-volunteers.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+/* ---------- Hero photo with dark overlay ---------- */
+.hero-photo {
+  background-color: oklch(var(--sidebar));
+  background-image:
+    linear-gradient(to right, oklch(15% 0.02 60 / 0.75), oklch(15% 0.02 60 / 0.25)),
+    url("../assets/images/hero-park-festival.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
