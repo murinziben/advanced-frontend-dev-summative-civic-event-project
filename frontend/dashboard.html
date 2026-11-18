@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My dashboard · CivicEvents</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<!-- data-guard="auth": must be signed in (see js/core/guards.js) -->
+<body data-root="./" data-guard="auth" data-page="dashboard" class="flex min-h-screen flex-col bg-background">
+  <div id="site-header"></div>
+
+  <main id="main" tabindex="-1" class="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
+    <header>
+      <p class="text-sm font-semibold text-secondary">My dashboard</p>
+      <h1 id="welcome" class="mt-1 text-3xl font-extrabold tracking-tight">Welcome</h1>
+      <p class="mt-2 text-muted-foreground">Here's a summary of your activity on CivicEvents.</p>
+    </header>
+
+    <section aria-labelledby="stats-title" class="mt-8">
+      <h2 id="stats-title" class="sr-only">Your statistics</h2>
+      <div id="user-stats" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="upcoming-title" class="mt-12">
+      <div class="flex items-end justify-between gap-4">
+        <h2 id="upcoming-title" class="text-xl font-extrabold tracking-tight">Your upcoming events</h2>
+        <a href="my-registrations.html" class="text-sm font-semibold text-primary hover:underline">All my registrations →</a>
+      </div>
+      <div id="upcoming-registrations" class="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <script src="js/config.js"></script>
+  <script src="js/core/utils.js"></script>
+  <script src="js/core/auth.js"></script>
+  <script src="js/core/api.js"></script>
+  <script src="js/core/ui.js"></script>
+  <script src="js/core/guards.js"></script>
+  <script src="js/core/notify-store.js"></script>
+  <script src="js/core/layout.js"></script>
+  <script src="js/core/app.js"></script>
+  <script src="js/components/cards.js"></script>
+
+  <script src="js/pages/user-dashboard.js"></script>
+</body>
+</html>
