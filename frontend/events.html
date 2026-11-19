@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Events · CivicEvents</title>
+  <meta name="description" content="Find and register for events in the City of Greenhill." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="./js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<!-- PAGE GUARD: data-guard="auth" → must be signed in (js/core/guards.js) -->
+<body data-root="./" data-guard="auth" data-page="events" class="flex min-h-screen flex-col bg-background">
+  <div id="site-header"></div>
+
+  <main id="main" tabindex="-1" class="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
+      <header class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-extrabold tracking-tight">Upcoming events</h1>
+          <p class="mt-2 text-muted-foreground">Free and low-cost activities across every district.</p>
+        </div>
+        <a href="admin/event-form.html" data-show-for="admin" class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70">+ Create event</a>
+      </header>
+
+      <form id="filters" role="search" aria-label="Filter events" class="mt-8 grid gap-4 rounded-xl border border-border bg-card shadow-card p-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <label for="filter-q" class="mb-1.5 block text-sm font-semibold">Search</label>
+          <input id="filter-q" type="search" placeholder="Event name, place…" class="w-full rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm focus:border-ring" />
+        </div>
+        <div>
+          <label for="filter-from" class="mb-1.5 block text-sm font-semibold">From date</label>
+          <input id="filter-from" type="date" class="w-full rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm focus:border-ring" />
+        </div>
+        <div>
+          <label for="filter-location" class="mb-1.5 block text-sm font-semibold">Location</label>
+          <select id="filter-location" class="w-full rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm focus:border-ring"><option value="">All locations</option></select>
+        </div>
+        <div>
+          <label for="filter-when" class="mb-1.5 block text-sm font-semibold">Show</label>
+          <select id="filter-when" class="w-full rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm focus:border-ring">
+            <option value="upcoming">Upcoming events</option>
+            <option value="past">Past events</option>
+            <option value="all">All events</option>
+          </select>
+        </div>
+      </form>
+
+      <div class="mt-6 flex items-center justify-between gap-4">
+        <h2 id="results-heading" tabindex="-1" class="sr-only">Results</h2>
+        <p id="events-count" class="text-sm text-muted-foreground" aria-live="polite"></p>
+        <button id="clear-filters" type="button" class="text-sm font-semibold text-primary hover:underline">Clear filters</button>
+      </div>
+      <div id="events-list" class="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <div id="events-pagination" class="mt-10"></div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Core -->
+  <script src="./js/config.js"></script>
+  <script src="./js/core/utils.js"></script>
+  <script src="./js/core/auth.js"></script>
+  <script src="./js/core/api.js"></script>
+  <script src="./js/core/ui.js"></script>
+  <script src="./js/core/guards.js"></script>
+  <script src="./js/core/cache.js"></script>
+  <script src="./js/core/notify-store.js"></script>
+  <script src="./js/core/layout.js"></script>
+  <script src="./js/core/app.js"></script>
+
+  <!-- Components -->
+  <script src="./js/components/cards.js"></script>
+  <script src="./js/components/pagination.js"></script>
+
+  <!-- Page -->
+  <script src="./js/pages/events.js"></script>
+</body>
+</html>
