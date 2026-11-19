@@ -82,11 +82,21 @@ window.CivicLayout = (function () {
     var rightSide;
     if (loggedIn) {
       rightSide =
-        // Notification bell with unread count
-        '<a href="' + U.url("notifications.html") + '" id="nav-bell" class="relative rounded-lg p-2 text-foreground/75 hover:bg-muted hover:text-foreground" aria-label="Notifications">' +
-          icon("bell") +
-          '<span id="nav-bell-count" class="absolute -right-0.5 -top-0.5 hidden min-w-[1.25rem] rounded-full bg-secondary px-1 text-center text-[11px] font-bold leading-5 text-white"></span>' +
-        "</a>" +
+        // Notification bell with unread count + drawer panel
+        '<div class="relative" id="bell-menu">' +
+          '<button type="button" id="nav-bell" class="relative rounded-lg p-2 text-foreground/75 hover:bg-muted hover:text-foreground" aria-label="Notifications" aria-expanded="false" aria-controls="bell-panel">' +
+            icon("bell") +
+            '<span id="nav-bell-count" class="absolute -right-0.5 -top-0.5 hidden min-w-[1.25rem] rounded-full bg-secondary px-1 text-center text-[11px] font-bold leading-5 text-white" aria-hidden="true"></span>' +
+          "</button>" +
+          '<div id="bell-panel" class="absolute right-0 top-full z-50 mt-2 hidden w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border bg-card shadow-lift" role="region" aria-label="Latest notifications">' +
+            '<div class="flex items-center justify-between border-b border-border px-4 py-3">' +
+              '<h2 class="text-sm font-bold">Notifications</h2>' +
+              '<button type="button" id="bell-mark-all" class="text-xs font-semibold text-primary hover:underline">Mark all as read</button>' +
+            "</div>" +
+            '<div id="bell-list" class="max-h-96 overflow-y-auto"></div>' +
+            '<a href="' + U.url("notifications.html") + '" class="block border-t border-border px-4 py-3 text-center text-sm font-semibold text-primary hover:bg-muted">View all notifications</a>' +
+          "</div>" +
+        "</div>" +
         // Profile dropdown
         '<div class="relative" id="profile-menu">' +
           '<button type="button" id="profile-button" class="flex items-center gap-2 rounded-lg p-1 pr-2 hover:bg-muted" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">' +
@@ -160,6 +170,7 @@ window.CivicLayout = (function () {
     // Profile dropdown toggle
     $("#profile-button").on("click", function (e) {
       e.stopPropagation();
+      closeBellPanel();
       var $btn = $(this);
       var $menu = $("#profile-dropdown");
       var open = $btn.attr("aria-expanded") === "true";
@@ -167,11 +178,72 @@ window.CivicLayout = (function () {
       $btn.attr("aria-expanded", String(!open));
       if (!open) $menu.find("a, button").first().trigger("focus");
     });
+
+    // Notification drawer toggle
+    $("#nav-bell").on("click", function (e) {
+      e.stopPropagation();
+      closeProfileMenu();
+      var open = $(this).attr("aria-expanded") === "true";
+      if (open) {
+        closeBellPanel();
+      } else {
+        $("#bell-panel").removeClass("hidden");
+        $(this).attr("aria-expanded", "true");
+        renderBellList();
+        refreshUnreadCount(); // fetch fresh data while the panel is open
+      }
+    });
+
+    $("#bell-mark-all").on("click", function () {
+      window.CivicNotifyStore.markAllRead(latestNotifications);
+      renderBellList();
+    });
   }
 
   function closeProfileMenu() {
     $("#profile-dropdown").addClass("hidden");
     $("#profile-button").attr("aria-expanded", "false");
+  }
+
+  function closeBellPanel() {
+    $("#bell-panel").addClass("hidden");
+    $("#nav-bell").attr("aria-expanded", "false");
+  }
+
+  /** Last list fetched from GET /api/notifications (used by the drawer). */
+  var latestNotifications = null;
+
+  /** Draws the 6 newest notifications inside the drawer. */
+  function renderBellList() {
+    var $list = $("#bell-list");
+    if (!$list.length) return;
+    if (latestNotifications === null) {
+      $list.html('<div class="space-y-3 p-4" aria-hidden="true"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-3 w-1/2"></div><div class="skeleton h-4 w-2/3"></div></div>');
+      return;
+    }
+    if (!latestNotifications.length) {
+      $list.html('<p class="px-4 py-8 text-center text-sm text-muted-foreground">You\'re all caught up. No notifications yet.</p>');
+      return;
+    }
+    $list.html(
+      '<ul class="divide-y divide-border">' +
+        latestNotifications.slice(0, 6).map(function (n) {
+          var unread = !window.CivicNotifyStore.isRead(n);
+          return (
+            "<li>" +
+              '<a href="' + U.url("notifications.html?id=" + encodeURIComponent(n.id)) + '" class="flex gap-3 px-4 py-3 hover:bg-muted">' +
+                '<span class="mt-1.5 h-2 w-2 shrink-0 rounded-full ' + (unread ? "bg-secondary" : "bg-transparent") + '" aria-hidden="true"></span>' +
+                '<span class="min-w-0 flex-1">' +
+                  '<span class="block truncate text-sm ' + (unread ? "font-bold" : "font-medium") + '">' + (unread ? '<span class="sr-only">Unread: </span>' : "") + esc(n.title) + "</span>" +
+                  '<span class="block truncate text-xs text-muted-foreground">' + esc(n.message) + "</span>" +
+                  '<span class="mt-0.5 block text-[11px] text-muted-foreground">' + esc(U.timeAgo(n.created_at)) + "</span>" +
+                "</span>" +
+              "</a>" +
+            "</li>"
+          );
+        }).join("") +
+      "</ul>"
+    );
   }
 
   /**
@@ -184,12 +256,18 @@ window.CivicLayout = (function () {
       // Click outside the dropdown closes it
       .on("click.civicLayout", function (e) {
         if (!$(e.target).closest("#profile-menu").length) closeProfileMenu();
+        if (!$(e.target).closest("#bell-menu").length) closeBellPanel();
       })
-      // Esc closes the dropdown and returns focus to its button
+      // Esc closes an open dropdown and returns focus to its button
       .on("keydown.civicLayout", function (e) {
-        if (e.key === "Escape" && $("#profile-button").attr("aria-expanded") === "true") {
+        if (e.key !== "Escape") return;
+        if ($("#profile-button").attr("aria-expanded") === "true") {
           closeProfileMenu();
           $("#profile-button").trigger("focus");
+        }
+        if ($("#nav-bell").attr("aria-expanded") === "true") {
+          closeBellPanel();
+          $("#nav-bell").trigger("focus");
         }
       })
       // Sign out (asks for confirmation first)
@@ -204,7 +282,13 @@ window.CivicLayout = (function () {
       })
       // Keep the header name in sync after a profile update
       .on("civic:user-updated.civicLayout", function () { renderHeader(); })
-      .on("civic:notifications-changed.civicLayout", function () { refreshUnreadCount(); });
+      .on("civic:notifications-changed.civicLayout", function () {
+        // Read/unread changed locally → recount without a new request.
+        if (latestNotifications) {
+          setUnreadCount(window.CivicNotifyStore.countUnread(latestNotifications));
+          renderBellList();
+        }
+      });
   }
 
   /** Updates the red number on the bell. */
@@ -223,7 +307,9 @@ window.CivicLayout = (function () {
   function refreshUnreadCount() {
     window.CivicApi.get("/notifications")
       .then(function (body) {
-        setUnreadCount(window.CivicNotifyStore.countUnread(body.data || []));
+        latestNotifications = body.data || [];
+        setUnreadCount(window.CivicNotifyStore.countUnread(latestNotifications));
+        renderBellList();
       })
       .catch(function () {
         /* The bell is not critical – fail quietly. */

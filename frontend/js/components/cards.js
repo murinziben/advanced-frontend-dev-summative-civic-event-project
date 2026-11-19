@@ -70,6 +70,7 @@ window.CivicCards = (function () {
         '<div class="relative overflow-hidden">' + media +
           '<span class="absolute left-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm ' + timing.cls + '">' + timing.label + "</span>" +
           (registered ? '<span class="absolute right-3 top-3 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground shadow-sm">Registered</span>' : "") +
+          (!U.toBool(evt.published) ? '<span class="absolute bottom-3 left-3 rounded-full bg-foreground/80 px-2.5 py-1 text-[11px] font-semibold text-white">Unpublished</span>' : "") +
         "</div>" +
         '<div class="flex flex-1 flex-col p-5">' +
           '<p class="text-xs font-semibold text-muted-foreground">' + esc(U.formatDate(evt.starts_at)) + "</p>" +
@@ -130,7 +131,25 @@ window.CivicCards = (function () {
     return html + '<span class="sr-only" role="status">Loading statistics…</span>';
   }
 
+  /** Five stars showing a rating, e.g. 4.5 → ★★★★½ (with text for screen readers). */
+  function stars(rating, sizeClass) {
+    var r = Number(rating) || 0;
+    var html = '<span class="inline-flex items-center gap-0.5" aria-hidden="true">';
+    for (var i = 1; i <= 5; i++) {
+      var fill = r >= i ? "100%" : r > i - 1 ? Math.round((r - (i - 1)) * 100) + "%" : "0%";
+      html +=
+        '<span class="relative inline-block ' + (sizeClass || "h-4 w-4") + '">' +
+          '<svg viewBox="0 0 24 24" class="absolute inset-0 h-full w-full text-border" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>' +
+          '<span class="absolute inset-y-0 left-0 overflow-hidden" style="width:' + fill + '">' +
+            '<svg viewBox="0 0 24 24" class="max-w-none text-secondary ' + (sizeClass || "h-4 w-4") + '" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>' +
+          "</span>" +
+        "</span>";
+    }
+    return html + '</span><span class="sr-only">Rated ' + r.toFixed(1).replace(/\.0$/, "") + " out of 5</span>";
+  }
+
   return {
+    stars: stars,
     event: event,
     eventImage: eventImage,
     eventTiming: eventTiming,

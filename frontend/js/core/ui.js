@@ -166,6 +166,46 @@ window.CivicUI = (function () {
     });
   }
 
+  /**
+   * CivicUI.dialog({ title, html }) – an accessible pop-up for showing details.
+   * Same keyboard rules as confirm(): focus inside, Tab trapped, Esc closes.
+   * Returns { close, $body } so the caller can fill it after loading data.
+   */
+  function dialog(options) {
+    var previousFocus = document.activeElement;
+    var $modal = $(
+      '<div class="modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">' +
+        '<div class="modal-panel relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-card p-6 shadow-lift" role="dialog" aria-modal="true" aria-labelledby="dialog-title">' +
+          '<button type="button" data-close class="absolute right-3 top-3 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close">' + icon("x", "h-5 w-5") + "</button>" +
+          '<h2 id="dialog-title" class="pr-8 text-lg font-bold">' + esc(options.title) + "</h2>" +
+          '<div data-dialog-body class="mt-4">' + (options.html || "") + "</div>" +
+        "</div>" +
+      "</div>"
+    );
+
+    function close() {
+      $(document).off("keydown.civicDialog");
+      $modal.remove();
+      if (previousFocus && previousFocus.focus) previousFocus.focus();
+    }
+
+    $modal.on("click", "[data-close]", close);
+    $modal.on("click", function (e) { if (e.target === this) close(); });
+    $(document).on("keydown.civicDialog", function (e) {
+      if (e.key === "Escape") close();
+      if (e.key === "Tab") {
+        var $f = $modal.find("a[href], button:not([disabled]), input, select, textarea").filter(":visible");
+        var first = $f.get(0), last = $f.get($f.length - 1);
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+
+    $("body").append($modal);
+    $modal.find("[data-close]").trigger("focus");
+    return { close: close, $body: $modal.find("[data-dialog-body]") };
+  }
+
   /* ------------------------------------------------------------------ */
   /* Buttons & forms                                                     */
   /* ------------------------------------------------------------------ */
@@ -294,6 +334,7 @@ window.CivicUI = (function () {
     toast: toast,
     showFlash: showFlash,
     confirm: confirmDialog,
+    dialog: dialog,
     setButtonLoading: setButtonLoading,
     showFieldError: showFieldError,
     clearFieldError: clearFieldError,
