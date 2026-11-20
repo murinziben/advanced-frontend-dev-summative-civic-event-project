@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Announcements · CivicEvents</title>
+  <meta name="description" content="Announcements – CivicEvents, City of Greenhill." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="./js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<!-- PAGE GUARD: data-guard="auth" → must be signed in (js/core/guards.js) -->
+<body data-root="./" data-guard="auth" data-page="announcements" class="flex min-h-screen flex-col bg-background">
+  <div id="site-header"></div>
+
+  <main id="main" tabindex="-1" class="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
+      <header class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-extrabold tracking-tight">Announcements</h1>
+          <p class="mt-2 text-muted-foreground">Listen to or read the latest updates from city departments.</p>
+        </div>
+        <a href="admin/announcement-form.html" data-show-for="admin" class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70">+ New announcement</a>
+      </header>
+      <div class="mt-8">
+        <label for="search" class="sr-only">Search announcements</label>
+        <input id="search" type="search" placeholder="Search announcements…" class="w-full rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm focus:border-ring" />
+      </div>
+      <p id="announcements-count" class="mt-4 text-sm text-muted-foreground" aria-live="polite"></p>
+      <div id="announcements-list" class="mt-3 grid gap-4"></div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Core -->
+  <script src="./js/config.js"></script>
+  <script src="./js/core/utils.js"></script>
+  <script src="./js/core/auth.js"></script>
+  <script src="./js/core/api.js"></script>
+  <script src="./js/core/ui.js"></script>
+  <script src="./js/core/guards.js"></script>
+  <script src="./js/core/cache.js"></script>
+  <script src="./js/core/notify-store.js"></script>
+  <script src="./js/core/layout.js"></script>
+  <script src="./js/core/app.js"></script>
+
+  <!-- Components -->
+  <script src="./js/components/cards.js"></script>
+  <script src="./js/components/media.js"></script>
+  <script src="./js/components/admin-layout.js"></script>
+
+  <!-- Page -->
+  <script src="./js/pages/announcements.js"></script>
+</body>
+</html>
