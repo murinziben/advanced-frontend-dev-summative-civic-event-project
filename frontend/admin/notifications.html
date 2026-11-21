@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage notifications · CivicEvents</title>
+  <meta name="description" content="Manage notifications – CivicEvents, City of Greenhill." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<!-- ADMIN PAGE GUARD: data-guard="admin" → visitors go to login, normal users to forbidden.html (js/core/guards.js).
+     The server ALSO checks every admin request with authorize(['admin']). -->
+<body data-root="../" data-guard="admin" data-page="admin" data-admin-page="notifications" class="flex min-h-screen flex-col bg-background">
+  <div id="site-header"></div>
+
+  <div class="mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4 py-8 sm:px-6 lg:px-8">
+    <aside id="admin-sidebar" class="hidden w-60 shrink-0 lg:block"></aside>
+    <main id="main" tabindex="-1" class="min-w-0 flex-1">
+      <div id="admin-mobile-nav" class="mb-6 lg:hidden"></div>
+      <header class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-extrabold tracking-tight">Notifications</h1>
+          <p class="mt-2 text-muted-foreground">Review and delete the in-app notifications residents receive.</p>
+        </div>
+        
+      </header>
+      <section aria-labelledby="broadcast-title" class="mt-6 rounded-xl border border-border bg-card shadow-card p-5">
+        <h2 id="broadcast-title" class="font-bold">Sending broadcasts</h2>
+        <p class="mt-1 text-sm text-muted-foreground">The backend sends a broadcast to every resident automatically when you create an event, announcement or promo, or publish an announcement or promo. (The provided API has no endpoint for writing a custom broadcast message.)</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <a href="event-form.html" class="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-card px-4 py-2.5 text-sm font-semibold transition hover:bg-muted">+ Event</a>
+          <a href="announcement-form.html" class="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-card px-4 py-2.5 text-sm font-semibold transition hover:bg-muted">+ Announcement</a>
+          <a href="promo-form.html" class="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-card px-4 py-2.5 text-sm font-semibold transition hover:bg-muted">+ Promo</a>
+        </div>
+      </section>
+      <div class="mt-6 flex flex-wrap items-end gap-4 rounded-xl border border-border bg-card shadow-card p-4">
+          <div class="min-w-[14rem] flex-1">
+            <label for="search" class="mb-1.5 block text-sm font-semibold">Search</label>
+            <input id="search" type="search" placeholder="Title or message…" class="w-full rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm focus:border-ring" />
+          </div><div>
+            <label for="type" class="mb-1.5 block text-sm font-semibold">Type</label>
+            <select id="type" class="w-full rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm focus:border-ring pr-8"><option value="">All types</option><option value="event">Events</option><option value="announcement">Announcements</option><option value="promo">Promos</option></select>
+          </div>
+      </div>
+      <p id="notifications-count" class="mt-6 text-sm text-muted-foreground" aria-live="polite"></p>
+      <div class="mt-3 overflow-x-auto rounded-xl border border-border bg-card shadow-card">
+        <table class="w-full min-w-[40rem] text-left text-sm">
+          <caption class="sr-only">All notifications</caption>
+          <thead class="border-b border-border bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground"><tr><th scope="col" class="px-4 py-3">Notification</th><th scope="col" class="px-4 py-3">Type</th><th scope="col" class="px-4 py-3">Sent</th><th scope="col" class="px-4 py-3"><span class="sr-only">Actions</span></th></tr></thead>
+          <tbody id="notifications-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <div id="site-footer"></div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Core -->
+  <script src="../js/config.js"></script>
+  <script src="../js/core/utils.js"></script>
+  <script src="../js/core/auth.js"></script>
+  <script src="../js/core/api.js"></script>
+  <script src="../js/core/ui.js"></script>
+  <script src="../js/core/guards.js"></script>
+  <script src="../js/core/cache.js"></script>
+  <script src="../js/core/notify-store.js"></script>
+  <script src="../js/core/layout.js"></script>
+  <script src="../js/core/app.js"></script>
+
+  <!-- Components -->
+  <script src="../js/components/admin-layout.js"></script>
+
+  <!-- Page -->
+  <script src="../js/pages/admin-notifications.js"></script>
+</body>
+</html>
