@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin dashboard · CivicEvents</title>
+  <meta name="description" content="Admin dashboard – CivicEvents, City of Greenhill." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,46 +14,76 @@
   <script src="../js/tailwind.config.js"></script>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
-
-<!--
-  ADMIN PAGE GUARD: data-guard="admin"
-  js/core/guards.js sends visitors to login.html and normal users to forbidden.html.
-  The API call below is ALSO protected on the server by authorize(['admin']).
-  data-root="../" because this page lives one folder deeper (frontend/admin/).
--->
-<body data-root="../" data-guard="admin" data-page="admin" class="flex min-h-screen flex-col bg-background">
+<!-- ADMIN PAGE GUARD: data-guard="admin" → visitors go to login, normal users to forbidden.html (js/core/guards.js).
+     The server ALSO checks every admin request with authorize(['admin']). -->
+<body data-root="../" data-guard="admin" data-page="admin" data-admin-page="dashboard" class="flex min-h-screen flex-col bg-background">
   <div id="site-header"></div>
 
-  <main id="main" tabindex="-1" class="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
-    <header>
-      <p class="text-sm font-semibold text-secondary">Administration</p>
-      <h1 class="mt-1 text-3xl font-extrabold tracking-tight">Dashboard</h1>
-      <p class="mt-2 text-muted-foreground">Live statistics from the CivicEvents database.</p>
-    </header>
+  <div class="mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4 py-8 sm:px-6 lg:px-8">
+    <aside id="admin-sidebar" class="hidden w-60 shrink-0 lg:block"></aside>
+    <main id="main" tabindex="-1" class="min-w-0 flex-1">
+      <div id="admin-mobile-nav" class="mb-6 lg:hidden"></div>
+      <header class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-extrabold tracking-tight">Dashboard</h1>
+          <p class="mt-2 text-muted-foreground">Live statistics from the CivicEvents database.</p>
+        </div>
+        <div class="flex items-center gap-3"><span id="updated-at" class="text-xs text-muted-foreground" aria-live="polite"></span><button type="button" id="refresh-dashboard" class="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-card px-4 py-2.5 text-sm font-semibold transition hover:bg-muted">Refresh</button></div>
+      </header>
 
-    <section aria-labelledby="kpi-title" class="mt-8">
-      <h2 id="kpi-title" class="sr-only">Key statistics</h2>
-      <div id="admin-stats" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-live="polite"></div>
-    </section>
+      <section aria-labelledby="kpi-title" class="mt-8">
+        <h2 id="kpi-title" class="sr-only">Key statistics</h2>
+        <div id="admin-stats" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-live="polite"></div>
+      </section>
 
-    <!-- Charts, admin sidebar and management pages are added in Phase 10. -->
-  </main>
+      <div class="mt-8 grid gap-6 xl:grid-cols-2">
+        <section aria-labelledby="growth-title" class="rounded-xl border border-border bg-card shadow-card p-5">
+          <h2 id="growth-title" class="font-bold">New users per month</h2>
+          <p class="text-sm text-muted-foreground">Sign-ups over the last 6 months</p>
+          <div class="chart-box relative mt-4 h-64"><canvas id="chart-growth" role="img" aria-label="Bar chart of new users per month. The same data is available as a table below."></canvas></div>
+          <details class="mt-3 text-sm"><summary class="cursor-pointer font-semibold text-primary">View as table</summary><div id="table-growth"></div></details>
+        </section>
+        <section aria-labelledby="activity-title" class="rounded-xl border border-border bg-card shadow-card p-5">
+          <h2 id="activity-title" class="font-bold">Platform activity</h2>
+          <p class="text-sm text-muted-foreground">Totals across the whole portal</p>
+          <div class="chart-box relative mt-4 h-64"><canvas id="chart-activity" role="img" aria-label="Horizontal bar chart of platform totals. The same data is available as a table below."></canvas></div>
+          <details class="mt-3 text-sm"><summary class="cursor-pointer font-semibold text-primary">View as table</summary><div id="table-activity"></div></details>
+        </section>
+      </div>
+
+      <section aria-labelledby="quick-title" class="mt-8">
+        <h2 id="quick-title" class="text-lg font-bold">Quick actions</h2>
+        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+          <a href="event-form.html" class="rounded-xl border border-border bg-card shadow-card p-4 font-semibold hover:shadow-lift">+ Create event</a>
+          <a href="announcement-form.html" class="rounded-xl border border-border bg-card shadow-card p-4 font-semibold hover:shadow-lift">+ New announcement</a>
+          <a href="promo-form.html" class="rounded-xl border border-border bg-card shadow-card p-4 font-semibold hover:shadow-lift">+ New promo video</a>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <div id="site-footer"></div>
 
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
+  <!-- Core -->
   <script src="../js/config.js"></script>
   <script src="../js/core/utils.js"></script>
   <script src="../js/core/auth.js"></script>
   <script src="../js/core/api.js"></script>
   <script src="../js/core/ui.js"></script>
   <script src="../js/core/guards.js"></script>
+  <script src="../js/core/cache.js"></script>
   <script src="../js/core/notify-store.js"></script>
   <script src="../js/core/layout.js"></script>
   <script src="../js/core/app.js"></script>
-  <script src="../js/components/cards.js"></script>
 
+  <!-- Components -->
+  <script src="../js/components/cards.js"></script>
+  <script src="../js/components/admin-layout.js"></script>
+
+  <!-- Page -->
   <script src="../js/pages/admin-dashboard.js"></script>
 </body>
 </html>
