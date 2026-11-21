@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Announcement form · CivicEvents</title>
+  <meta name="description" content="Announcement form – CivicEvents, City of Greenhill." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<!-- ADMIN PAGE GUARD: data-guard="admin" → visitors go to login, normal users to forbidden.html (js/core/guards.js).
+     The server ALSO checks every admin request with authorize(['admin']). -->
+<body data-root="../" data-guard="admin" data-page="admin" data-admin-page="announcements" class="flex min-h-screen flex-col bg-background">
+  <div id="site-header"></div>
+
+  <div class="mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4 py-8 sm:px-6 lg:px-8">
+    <aside id="admin-sidebar" class="hidden w-60 shrink-0 lg:block"></aside>
+    <main id="main" tabindex="-1" class="min-w-0 flex-1">
+      <div id="admin-mobile-nav" class="mb-6 lg:hidden"></div>
+      <a href="announcements.html" class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"><span aria-hidden="true">←</span> Back to announcements</a>
+      <h1 id="form-title" class="mt-4 text-3xl font-extrabold tracking-tight">New announcement</h1>
+      <p class="mt-2 text-muted-foreground">Upload a short audio recording. Everyone gets a notification when it's created.</p>
+      <form id="announcement-form" class="mt-8 max-w-3xl space-y-6 rounded-xl border border-border bg-card shadow-card p-6" novalidate>
+        <div data-form-alert class="hidden"></div>
+        <div>
+          <label for="title" class="mb-1.5 block text-sm font-semibold">Title <span class="text-destructive" aria-hidden="true">*</span></label>
+          <input id="title" type="text" maxlength="200" required placeholder="e.g. Road works on Main Avenue" class="w-full rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm focus:border-ring" />
+        </div>
+        <div id="audio-group">
+          <label for="audio" class="mb-1.5 block text-sm font-semibold">Audio recording <span class="text-destructive" aria-hidden="true">*</span></label>
+          <input id="audio" type="file" class="block w-full text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-primary-soft file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-primary" />
+          <div id="audio-preview" class="mt-3" aria-live="polite"></div>
+        </div>
+        <div class="rounded-lg border border-border bg-muted/40 p-4">
+            <label class="flex cursor-pointer items-center gap-3">
+              <input id="published" type="checkbox" checked class="h-5 w-5 rounded border-input accent-primary" />
+              <span class="text-sm font-semibold">Published</span>
+            </label>
+            <p id="published-label" class="mt-1 pl-8 text-xs text-muted-foreground" aria-live="polite"></p>
+            <p class="mt-1 pl-8 text-xs text-muted-foreground">Residents only see published announcements.</p>
+          </div>
+        <div class="flex flex-wrap gap-2 border-t border-border pt-6">
+          <button id="announcement-submit" type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70">Publish announcement</button>
+          <a href="announcements.html" class="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-card px-4 py-2.5 text-sm font-semibold transition hover:bg-muted">Cancel</a>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <div id="site-footer"></div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Core -->
+  <script src="../js/config.js"></script>
+  <script src="../js/core/utils.js"></script>
+  <script src="../js/core/auth.js"></script>
+  <script src="../js/core/api.js"></script>
+  <script src="../js/core/ui.js"></script>
+  <script src="../js/core/guards.js"></script>
+  <script src="../js/core/cache.js"></script>
+  <script src="../js/core/notify-store.js"></script>
+  <script src="../js/core/layout.js"></script>
+  <script src="../js/core/app.js"></script>
+
+  <!-- Components -->
+  <script src="../js/components/admin-layout.js"></script>
+  <script src="../js/components/file-field.js"></script>
+  <script src="../js/components/media.js"></script>
+
+  <!-- Page -->
+  <script src="../js/pages/admin-announcement-form.js"></script>
+</body>
+</html>
