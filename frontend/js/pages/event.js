@@ -1,24 +1,3 @@
-/*
- * Event detail (event.html?id=...)
- * ---------------------------------------------------------------
- * APIs used:
- *   GET  /api/events/:id                                   event details
- *   GET  /api/event-registrations/my-registrations         am I registered?   (users)
- *   POST /api/event-registrations/register  { event_id }   register           (users)
- *   POST /api/event-registrations/cancel    { event_id }   cancel             (users)
- *   GET  /api/event-registrations/event/:id/attendees      registrant list    (ADMIN)
- *   GET  /api/event-feedback/my-feedback                   my rating          (users)
- *   POST /api/event-feedback  { event_id, rating, comment } add rating         (users)
- *   PUT  /api/event-feedback/:id { rating, comment }       edit my rating     (users)
- *   GET  /api/event-feedback/event/:id                     all ratings        (ADMIN)
- *   DELETE /api/events/:id                                 delete             (ADMIN)
- *
- * ROLE-BASED UI (see js/core/guards.js for the full explanation):
- *   - Users see Register / Cancel and their own feedback form.
- *   - Admins see Edit / Delete, the registrant list and every rating
- *     with the average. (The backend only lets admins list an event's
- *     feedback, so normal users can't see other people's ratings.)
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -27,16 +6,13 @@ CivicApp.start(function () {
   var eventId = U.getQueryParam("id");
 
   var event = null;
-  var registration = null; // my registration row for this event (or null)
+  var registration = null;
   var myFeedback = null;
 
   var $root = $("#event-root");
 
   if (!eventId) return showNotFound();
 
-  /* ================================================================ */
-  /*  Loading                                                          */
-  /* ================================================================ */
   function load() {
     $root.html(skeleton());
 
@@ -49,7 +25,8 @@ CivicApp.start(function () {
     Promise.all(requests)
       .then(function (res) {
         event = res[0].data;
-        // Normal users must not see unpublished events.
+
+        // ROLE GUARD: unpublished events are hidden from residents.
         if (!event || (!isAdmin && !U.toBool(event.published))) return showNotFound();
 
         if (!isAdmin) {
@@ -67,7 +44,7 @@ CivicApp.start(function () {
         }
       })
       .catch(function (err) {
-        // 404 from the API or an invalid id (PostgreSQL rejects non-UUIDs with 500).
+        // PostgreSQL rejects a malformed id with 500, which for the user is simply "not found".
         if (err.status === 404 || (err.status === 500 && /uuid/i.test(err.message))) return showNotFound();
         $root.html('<div class="grid">' + CivicUI.errorState(err) + "</div>");
         $root.find("[data-retry]").on("click", load);
@@ -95,9 +72,6 @@ CivicApp.start(function () {
     );
   }
 
-  /* ================================================================ */
-  /*  Main layout                                                       */
-  /* ================================================================ */
   function renderEvent() {
     var img = CivicCards.eventImage(event);
     var timing = CivicCards.eventTiming(event);
@@ -118,7 +92,6 @@ CivicApp.start(function () {
 
     $root.html(
       '<div class="grid gap-8 lg:grid-cols-[1fr_22rem]">' +
-        // Left column
         '<article aria-labelledby="event-title">' +
           media +
           '<div class="mt-6 flex flex-wrap items-center gap-2">' +
@@ -133,8 +106,6 @@ CivicApp.start(function () {
           '<section id="feedback-section" class="mt-12" aria-labelledby="feedback-title"></section>' +
           (isAdmin ? '<section id="attendees" class="mt-12 scroll-mt-24" aria-labelledby="attendees-title"></section>' : "") +
         "</article>" +
-
-        // Right column – sticky info card
         "<aside>" +
           '<div class="sticky top-24 rounded-xl border border-border bg-card p-6 shadow-card">' +
             '<h2 class="sr-only">Event details</h2>' +
@@ -154,9 +125,6 @@ CivicApp.start(function () {
     renderActions();
   }
 
-  /* ================================================================ */
-  /*  Register / cancel (users) – Edit / delete (admins)               */
-  /* ================================================================ */
   function eventEnded() {
     var end = event.ends_at || event.starts_at;
     return end && new Date(end).getTime() < Date.now();
@@ -165,7 +133,7 @@ CivicApp.start(function () {
   function renderActions() {
     var $a = $("#event-actions");
 
-    // ADMIN UI GUARD: management buttons only for role === "admin".
+    // ROLE GUARD: management buttons only for admins.
     if (isAdmin) {
       $a.html(
         '<p class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Admin actions</p>' +
@@ -224,8 +192,8 @@ CivicApp.start(function () {
       })
       .catch(function (err) {
         CivicUI.setButtonLoading($btn, false);
+        // The backend never re-activates a cancelled registration, so 409 means a record already exists.
         if (err.status === 409) {
-          // Backend says a registration already exists (it may be a cancelled one).
           registration = registration || { event_id: event.id, status: "cancelled" };
           CivicUI.toast("warning", "You already have a registration record for this event.");
           renderActions();
@@ -282,11 +250,6 @@ CivicApp.start(function () {
     });
   }
 
-  /* ================================================================ */
-  /*  Feedback                                                          */
-  /* ================================================================ */
-
-  /** USER view: my own rating (form to add or edit). */
   function renderUserFeedback() {
     var $s = $("#feedback-section");
     var heading = '<h2 id="feedback-title" class="text-xl font-extrabold tracking-tight">Feedback &amp; ratings</h2>';
@@ -295,7 +258,7 @@ CivicApp.start(function () {
       $("#rating-summary").html(CivicCards.stars(myFeedback.rating) + ' <span class="ml-1 align-middle">Your rating</span>');
     }
 
-    // Only people who registered can rate (feedback belongs to an attendee).
+    // Feedback belongs to attendees, and the event's full feedback list is admin-only in the backend.
     if (!myFeedback && (!registration || registration.status !== "registered")) {
       $s.html(
         heading +
@@ -331,7 +294,7 @@ CivicApp.start(function () {
     bindFeedbackForm(editing);
   }
 
-  /** Accessible star rating: a group of 5 radio buttons styled as stars. */
+  // Radio buttons give the star rating keyboard and screen-reader support without custom key handling.
   function feedbackForm(editing) {
     var current = editing ? Number(myFeedback.rating) : 0;
     var starsHtml = "";
@@ -364,7 +327,6 @@ CivicApp.start(function () {
   function bindFeedbackForm(editing) {
     var $form = $("#feedback-form");
 
-    // Colour the stars up to the chosen one.
     function paint(value) {
       $form.find("[data-star]").each(function () {
         var n = Number($(this).attr("data-star"));
@@ -406,7 +368,6 @@ CivicApp.start(function () {
         .catch(function (err) {
           CivicUI.setButtonLoading($btn, false);
           if (err.status === 409) {
-            // Backend unique rule: one feedback per user per event.
             CivicUI.showFormAlert($form, "You've already rated this event. Refresh the page to edit your existing feedback.");
           } else {
             CivicUI.showFormAlert($form, err.message);
@@ -415,7 +376,6 @@ CivicApp.start(function () {
     });
   }
 
-  /** ADMIN view: every rating + average. */
   function loadAllFeedback() {
     var $s = $("#feedback-section");
     $s.html('<h2 id="feedback-title" class="text-xl font-extrabold tracking-tight">Feedback &amp; ratings</h2><div id="feedback-list" class="mt-4 space-y-3">' + CivicUI.skeletonCards(2, false) + "</div>");
@@ -454,9 +414,6 @@ CivicApp.start(function () {
       });
   }
 
-  /* ================================================================ */
-  /*  Registrants (ADMIN only)                                         */
-  /* ================================================================ */
   function loadAttendees() {
     var $s = $("#attendees");
     $s.html(
@@ -497,7 +454,7 @@ CivicApp.start(function () {
       });
   }
 
-  /** Turns a database foreign-key error into a clear sentence. */
+  // Registrations reference the event without ON DELETE CASCADE, so the database blocks the delete.
   function friendlyDeleteError(err) {
     if (/foreign key|violates/i.test(err.message || "")) {
       return "This event can't be deleted because people have registered for it. The backend keeps registrations linked to their event.";

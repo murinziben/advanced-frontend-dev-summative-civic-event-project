@@ -1,14 +1,3 @@
-/*
- * My registrations (my-registrations.html)
- * ---------------------------------------------------------------
- * APIs:
- *   GET  /api/event-registrations/my-registrations   my registrations
- *        (each row has status "registered" or "cancelled" plus the
- *         event's title, starts_at, ends_at and location)
- *   POST /api/event-registrations/cancel { event_id }
- *
- * Tabs: Upcoming · Past · Cancelled
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -33,7 +22,6 @@ CivicApp.start(function () {
     };
   }
 
-  /* Accessible tabs (role="tablist") – arrow keys move between tabs. */
   function renderTabs() {
     var g = groups();
     var tabs = [["upcoming", "Upcoming"], ["past", "Past"], ["cancelled", "Cancelled"]];
@@ -117,13 +105,13 @@ CivicApp.start(function () {
       });
   }
 
-  /* Tabs: click + arrow keys */
   $("#registration-tabs").on("click", "[data-tab]", function () {
     tab = $(this).attr("data-tab");
     history.replaceState(null, "", "?tab=" + tab);
     render();
     $("#tab-" + tab).trigger("focus");
   });
+  // Arrow keys follow the WAI-ARIA tabs pattern.
   $("#registration-tabs").on("keydown", "[role=tab]", function (e) {
     var order = ["upcoming", "past", "cancelled"];
     var i = order.indexOf($(this).attr("data-tab"));
@@ -134,7 +122,6 @@ CivicApp.start(function () {
     }
   });
 
-  /* Cancel a registration */
   $list.on("click", "[data-cancel]", function () {
     var $btn = $(this);
     var eventId = $btn.attr("data-cancel");

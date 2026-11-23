@@ -4,24 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My events · CivicEvents</title>
+  <link rel="icon" type="image/png" href="./assets/images/favicon.png" />
   <meta name="description" content="My events – CivicEvents, City of Greenhill." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="./js/tailwind.config.js"></script>
   <link rel="stylesheet" href="./css/styles.css" />
 </head>
-<!-- PAGE GUARD: data-guard="auth" → must be signed in (js/core/guards.js) -->
+<!-- Role guard: signed-in users only (js/core/guards.js). -->
 <body data-root="./" data-guard="auth" data-page="my-events" class="flex min-h-screen flex-col bg-background">
   <div id="site-header"></div>
 
   <main id="main" tabindex="-1" class="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
       <header class="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-extrabold tracking-tight">My events</h1>
+          <h1 class="text-2xl font-bold tracking-tight text-navy sm:text-3xl">My events</h1>
           <p class="mt-2 text-muted-foreground">Events you've registered for. Cancel a spot or rate an event after it ends.</p>
         </div>
         
@@ -34,7 +35,7 @@
 
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-  <!-- Core -->
+  <!-- Order matters: each script depends on the ones above it. -->
   <script src="./js/config.js"></script>
   <script src="./js/core/utils.js"></script>
   <script src="./js/core/auth.js"></script>
@@ -45,11 +46,7 @@
   <script src="./js/core/notify-store.js"></script>
   <script src="./js/core/layout.js"></script>
   <script src="./js/core/app.js"></script>
-
-  <!-- Components -->
   <script src="./js/components/cards.js"></script>
-
-  <!-- Page -->
   <script src="./js/pages/my-registrations.js"></script>
 </body>
 </html>

@@ -1,17 +1,3 @@
-/*
- * Events list (events.html)
- * ---------------------------------------------------------------
- * APIs:
- *   GET /api/events                                → every event (no server-side filters)
- *   GET /api/event-registrations/my-registrations  → to mark events I registered for
- *
- * The backend returns ALL events in one response and has no search,
- * filter or paging parameters, so searching, filtering by date/location
- * and pagination all happen here in the browser.
- *
- * ROLE GUARD: normal users only see events with published = true.
- * Admins see everything (unpublished ones get an "Unpublished" label).
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var PER_PAGE = CivicConfig.PAGE_SIZE;
@@ -30,12 +16,11 @@ CivicApp.start(function () {
   var $list = $("#events-list");
   var $count = $("#events-count");
 
-  // Put the current filters into the form.
   $("#filter-q").val(state.q);
   $("#filter-from").val(state.from);
   $("#filter-when").val(state.when);
 
-  /** Keeps the address bar in sync so filtered results can be shared/bookmarked. */
+  // Filters live in the URL so results can be bookmarked, shared and survive a refresh.
   function syncUrl() {
     var params = new URLSearchParams();
     if (state.q) params.set("q", state.q);
@@ -57,12 +42,14 @@ CivicApp.start(function () {
     $sel.val(options.indexOf(state.location) !== -1 ? state.location : "");
   }
 
+  // The API has no search or filter parameters, so filtering happens in the browser.
   function applyFilters() {
     var now = Date.now();
     var q = state.q.trim().toLowerCase();
     var fromTime = state.from ? new Date(state.from + "T00:00:00").getTime() : null;
 
     return allEvents.filter(function (e) {
+      // ROLE GUARD: residents only see published events.
       if (!isAdmin && !U.toBool(e.published)) return false;
 
       var start = e.starts_at ? new Date(e.starts_at).getTime() : null;
@@ -84,7 +71,7 @@ CivicApp.start(function () {
 
   function render() {
     var results = applyFilters();
-    if (state.when === "past") results.reverse(); // most recent past events first
+    if (state.when === "past") results.reverse();
 
     var pages = CivicPagination.totalPages(results.length, PER_PAGE);
     if (state.page > pages) state.page = pages;
@@ -107,7 +94,7 @@ CivicApp.start(function () {
 
     $list.html(
       CivicPagination.slice(results, state.page, PER_PAGE)
-        .map(function (e) { return CivicCards.event(e, { registered: !!registeredIds[e.id] }); })
+        .map(function (e) { return CivicCards.event(e, { registered: !!registeredIds[e.id], registerable: true }); })
         .join("")
     );
 
@@ -118,7 +105,8 @@ CivicApp.start(function () {
       onChange: function (p) {
         state.page = p;
         render();
-        // Move focus to the results so keyboard/screen-reader users land on the new page.
+
+        // Move focus to the results so keyboard users aren't left on the pagination.
         $("#results-heading").trigger("focus");
       },
     });
@@ -129,7 +117,8 @@ CivicApp.start(function () {
     $count.text("Loading events…");
 
     var requests = [CivicApi.get("/events")];
-    // Admins don't register for events; only fetch registrations for normal users.
+
+    // Admins don't register for events, so their registrations aren't fetched.
     if (!isAdmin) requests.push(CivicApi.get("/event-registrations/my-registrations").catch(function () { return { data: [] }; }));
 
     Promise.all(requests)
@@ -149,7 +138,6 @@ CivicApp.start(function () {
       });
   }
 
-  /* ---------------- Filter events ---------------- */
   $("#filter-q").on("input", U.debounce(function () { state.q = this.value; state.page = 1; render(); }, 250));
   $("#filter-from").on("change", function () { state.from = this.value; state.page = 1; render(); });
   $("#filter-location").on("change", function () { state.location = this.value; state.page = 1; render(); });
