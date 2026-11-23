@@ -1,26 +1,14 @@
-/*
- * Tailwind configuration (used by the Tailwind Play CDN).
- * ---------------------------------------------------------------
- * WHAT: tells Tailwind about our own colour names, font and corner radius,
- *       so we can write classes like `bg-primary`, `text-muted-foreground`.
- * WHY:  keeps every page on the same design system as the CivicEvents design.
- * HOW:  the colour values live in css/styles.css as CSS variables; here we
- *       only map Tailwind names → those variables.
- *
- * This file must be loaded right AFTER the Tailwind CDN <script>.
- */
 (function () {
-  // Helper: turns "--primary" into "oklch(var(--primary) / <alpha-value>)"
-  // so opacity modifiers like bg-primary/20 still work.
+  // Colours live in css/styles.css; reading them here keeps one source of truth and lets opacity modifiers (bg-primary/10) work.
   function token(name) {
-    return "oklch(var(--" + name + ") / <alpha-value>)";
+    return "rgb(var(--" + name + ") / <alpha-value>)";
   }
 
   tailwind.config = {
     theme: {
       extend: {
         fontFamily: {
-          sans: ['"Plus Jakarta Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+          sans: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
         },
         colors: {
           background: token("background"),
@@ -31,6 +19,8 @@
             foreground: token("primary-foreground"),
             soft: token("primary-soft"),
           },
+          navy: token("navy"),
+          blue: { brand: token("blue") },
           secondary: {
             DEFAULT: token("secondary"),
             foreground: token("secondary-foreground"),
@@ -56,12 +46,12 @@
         },
         borderRadius: {
           lg: "var(--radius)",
-          xl: "calc(var(--radius) + 4px)",
-          "2xl": "calc(var(--radius) + 8px)",
+          xl: "calc(var(--radius) + 2px)",
+          "2xl": "calc(var(--radius) + 6px)",
         },
         boxShadow: {
-          card: "0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px rgb(0 0 0 / 0.04)",
-          lift: "0 2px 4px rgb(0 0 0 / 0.05), 0 12px 32px rgb(0 0 0 / 0.08)",
+          card: "0 1px 2px rgb(15 23 42 / 0.04), 0 2px 8px rgb(15 23 42 / 0.04)",
+          lift: "0 4px 6px rgb(15 23 42 / 0.04), 0 12px 28px rgb(37 99 235 / 0.10)",
         },
       },
     },
