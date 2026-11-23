@@ -1,18 +1,8 @@
-/*
- * CivicCards – reusable card markup (event, announcement, stat).
- * ---------------------------------------------------------------
- * Used by the home page, list pages and dashboards so every card
- * looks the same everywhere (matches the CivicEvents design).
- *
- * All text from the API goes through escapeHtml() before it is
- * inserted, to prevent XSS.
- */
 window.CivicCards = (function () {
   var U = window.CivicUtils;
   var esc = U.escapeHtml;
   var icon = function (n, c) { return window.CivicUI.icon(n, c); };
 
-  /** Image from the backend (metadata.image_url), or null. */
   function eventImage(evt) {
     var meta = evt.metadata || {};
     if (typeof meta === "string") {
@@ -21,7 +11,6 @@ window.CivicCards = (function () {
     return meta.image_url || null;
   }
 
-  /** Placeholder shown when an event has no image. */
   function imageFallback(sizeClasses) {
     return (
       '<div class="flex items-center justify-center bg-gradient-to-br from-primary-soft to-secondary-soft text-primary ' + sizeClasses + '" aria-hidden="true">' +
@@ -30,7 +19,6 @@ window.CivicCards = (function () {
     );
   }
 
-  /** "Upcoming", "Happening now" or "Past" from the event dates. */
   function eventTiming(evt) {
     var now = Date.now();
     var start = evt.starts_at ? new Date(evt.starts_at).getTime() : null;
@@ -41,10 +29,38 @@ window.CivicCards = (function () {
   }
 
   /**
-   * Event card.
-   * options.adminControls → shows Edit / Delete buttons (only passed by admin pages,
-   * and only when CivicAuth.isAdmin() is true – ROLE-BASED UI GUARD).
+   * Register straight from the card (brief: "actions: View, Register (if user)").
+   * Only for signed-in residents, and not for events that have already ended.
    */
+  function registerControl(evt, o) {
+    if (!o.registerable || window.CivicAuth.isAdmin() || !window.CivicAuth.isLoggedIn()) return "";
+    if (eventTiming(evt).label === "Past event") return "";
+    if (o.registered) {
+      return '<a href="' + U.url("my-registrations.html") + '" class="inline-flex items-center gap-1 rounded-lg bg-primary-soft px-3 py-1.5 text-xs font-semibold text-primary">' +
+        icon("check", "h-3.5 w-3.5") + "Registered</a>";
+    }
+    return '<button type="button" data-register-event="' + esc(evt.id) + '" data-title="' + esc(evt.title) + '" ' +
+      'class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90">Register<span class="sr-only"> for ' + esc(evt.title) + "</span></button>";
+  }
+
+  // Delegated once so it works for cards added later (pagination, filters, home page).
+  $(document).on("click", "[data-register-event]", function () {
+    var $btn = $(this);
+    var id = $btn.attr("data-register-event");
+    var title = $btn.attr("data-title");
+    window.CivicUI.setButtonLoading($btn, true, "Registering…");
+    window.CivicApi.post("/event-registrations/register", { event_id: id })
+      .then(function () {
+        window.CivicUI.toast("success", "You're registered for " + title + ".");
+        $btn.replaceWith(registerControl({ id: id }, { registerable: true, registered: true }));
+      })
+      .catch(function (err) {
+        window.CivicUI.setButtonLoading($btn, false);
+        window.CivicUI.toast(err.status === 409 ? "warning" : "error",
+          err.status === 409 ? "You already have a registration for this event. Check My Events." : err.message);
+      });
+  });
+
   function event(evt, options) {
     var o = options || {};
     var href = U.url("event.html?id=" + encodeURIComponent(evt.id));
@@ -57,6 +73,7 @@ window.CivicCards = (function () {
       : imageFallback("h-44 w-full");
 
     var adminButtons = "";
+    // ROLE GUARD: edit/delete controls are only built for admins (the API also rejects non-admins).
     if (o.adminControls && window.CivicAuth.isAdmin()) {
       adminButtons =
         '<div class="flex gap-2 border-t border-border px-5 py-3">' +
@@ -81,8 +98,9 @@ window.CivicCards = (function () {
             '<li class="flex items-center gap-2">' + icon("mapPin", "h-4 w-4 shrink-0") + '<span class="truncate">' + esc(evt.location || "Location to be confirmed") + "</span></li>" +
             '<li class="flex items-center gap-2">' + icon("clock", "h-4 w-4 shrink-0") + "<span>" + esc(U.formatTimeRange(evt.starts_at, evt.ends_at)) + "</span></li>" +
           "</ul>" +
-          '<div class="mt-auto pt-4">' +
+          '<div class="mt-auto flex items-center justify-between gap-3 pt-4">' +
             '<a href="' + href + '" class="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">View details<span class="sr-only"> for ' + esc(evt.title) + "</span>" + icon("arrowRight", "h-4 w-4") + "</a>" +
+            registerControl(evt, o) +
           "</div>" +
         "</div>" +
         adminButtons +
@@ -90,7 +108,6 @@ window.CivicCards = (function () {
     );
   }
 
-  /** Small announcement card used on the home page / dashboard. */
   function announcementSummary(a) {
     var href = U.url("announcement.html?id=" + encodeURIComponent(a.id));
     return (
@@ -105,7 +122,6 @@ window.CivicCards = (function () {
     );
   }
 
-  /** KPI / statistic tile for dashboards. */
   function stat(label, value, iconName, hint) {
     return (
       '<div class="rounded-xl border border-border bg-card p-5 shadow-card">' +
@@ -119,7 +135,6 @@ window.CivicCards = (function () {
     );
   }
 
-  /** Grey placeholders while stats load. */
   function statSkeletons(count) {
     var html = "";
     for (var i = 0; i < count; i++) {
@@ -131,7 +146,6 @@ window.CivicCards = (function () {
     return html + '<span class="sr-only" role="status">Loading statistics…</span>';
   }
 
-  /** Five stars showing a rating, e.g. 4.5 → ★★★★½ (with text for screen readers). */
   function stars(rating, sizeClass) {
     var r = Number(rating) || 0;
     var html = '<span class="inline-flex items-center gap-0.5" aria-hidden="true">';

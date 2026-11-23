@@ -1,18 +1,3 @@
-/*
- * CivicFileField – file inputs with checks, preview and upload progress.
- * ---------------------------------------------------------------
- * Brief: "For file uploads: show size/type errors before uploading",
- *        "Show preview of uploaded image before submit",
- *        "Provide labels for file inputs and show clear progress indicators".
- *
- * Usage:
- *   var field = CivicFileField.init({
- *     input: "#image", kind: "image", preview: "#image-preview", existingUrl: url
- *   });
- *   field.getFile()          → the chosen File, or null
- *   field.isValid()          → false if the chosen file breaks the rules
- *   field.setProgress(42)    → updates the progress bar
- */
 window.CivicFileField = (function () {
   var U = window.CivicUtils;
   var esc = U.escapeHtml;
@@ -24,10 +9,8 @@ window.CivicFileField = (function () {
     var objectUrl = null;
     var valid = true;
 
-    // Tell the browser's file picker which files to show.
     $input.attr("accept", rules.extensions.join(","));
 
-    // Hint under the input (linked with aria-describedby).
     var hintId = $input.attr("id") + "-hint";
     if (!$("#" + hintId).length) {
       $input.after('<p id="' + hintId + '" class="mt-1.5 text-xs text-muted-foreground">' + esc(rules.label) + "</p>");
@@ -76,6 +59,7 @@ window.CivicFileField = (function () {
       var file = this.files && this.files[0];
       if (!file) return reset();
 
+      // Checking before upload avoids sending a large file the server would reject anyway.
       var error = U.validateFile(file, o.kind);
       if (error) {
         valid = false;

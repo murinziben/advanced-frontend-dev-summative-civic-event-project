@@ -1,13 +1,5 @@
-/*
- * CivicPagination – page numbers under a list.
- * ---------------------------------------------------------------
- * The events API returns ALL events at once (no server paging), so we
- * split the list into pages in the browser.
- *
- *   var page = CivicPagination.slice(items, currentPage, perPage);
- *   CivicPagination.render($container, { page, totalItems, perPage, onChange });
- */
 window.CivicPagination = (function () {
+  // The events API returns everything at once, so paging happens in the browser.
   function totalPages(totalItems, perPage) {
     return Math.max(1, Math.ceil(totalItems / perPage));
   }
@@ -39,7 +31,6 @@ window.CivicPagination = (function () {
       );
     };
 
-    // Show first, last, current ±1, with "…" gaps.
     var numbers = [];
     for (var p = 1; p <= pages; p++) {
       if (p === 1 || p === pages || Math.abs(p - o.page) <= 1) numbers.push(p);
