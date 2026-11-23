@@ -1,15 +1,3 @@
-/*
- * User dashboard (dashboard.html)
- * ---------------------------------------------------------------
- * APIs:
- *   GET /api/dashboard/me                          → my counts
- *   GET /api/notifications                         → for the unread count*
- *   GET /api/event-registrations/my-registrations  → my upcoming events
- *
- * * The backend's unread count always treats every notification as unread
- *   (there is no "mark as read" endpoint), so we count unread ones with
- *   CivicNotifyStore instead – see js/core/notify-store.js.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var user = CivicAuth.getUser();
@@ -25,6 +13,7 @@ CivicApp.start(function () {
     Promise.all([CivicApi.get("/dashboard/me"), CivicApi.get("/notifications")])
       .then(function (results) {
         var d = results[0].data || {};
+        // The backend's unread count can't know what was read in the browser, so we count locally.
         var unread = CivicNotifyStore.countUnread(results[1].data || []);
         $stats.html(
           CivicCards.stat("Events registered", num(d.registrations && d.registrations.total_registered_events), "ticket", "All time") +

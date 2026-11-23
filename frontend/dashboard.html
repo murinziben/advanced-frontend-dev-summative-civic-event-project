@@ -4,23 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My dashboard · CivicEvents</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="js/tailwind.config.js"></script>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 
-<!-- data-guard="auth": must be signed in (see js/core/guards.js) -->
+<!-- Role guard: signed-in users only (js/core/guards.js). -->
 <body data-root="./" data-guard="auth" data-page="dashboard" class="flex min-h-screen flex-col bg-background">
   <div id="site-header"></div>
 
   <main id="main" tabindex="-1" class="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
     <header>
-      <p class="text-sm font-semibold text-secondary">My dashboard</p>
+      <p class="text-sm font-semibold text-primary">My dashboard</p>
       <h1 id="welcome" class="mt-1 text-3xl font-extrabold tracking-tight">Welcome</h1>
       <p class="mt-2 text-muted-foreground">Here's a summary of your activity on CivicEvents.</p>
     </header>
@@ -43,6 +44,7 @@
 
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
+  <!-- Order matters: each script depends on the ones above it. -->
   <script src="js/config.js"></script>
   <script src="js/core/utils.js"></script>
   <script src="js/core/auth.js"></script>

@@ -1,20 +1,14 @@
-/*
- * Home page
- * ---------------------------------------------------------------
- * The backend protects ALL event and announcement routes with
- * `authenticate` (see backend/src/routes/events.routes.js), so a visitor
- * who isn't signed in can't load them. So:
- *   - visitors see the hero, the feature cards and a "sign in" prompt;
- *   - signed-in users see the next 3 published events and the
- *     2 latest published announcements, loaded from the API.
- *
- * APIs: GET /api/events, GET /api/announcements
- */
 CivicApp.start(function () {
+  CivicSlideshow.init("#hero-slides", CivicConfig.HERO_SLIDES, {
+    label: "Photos of places in Rwanda",
+    // Navy gradient on the left keeps the white headline readable on every photo.
+    overlay: '<div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-navy/90 via-navy/60 to-navy/20" aria-hidden="true"></div>',
+    controls: "bottom-20 right-4 sm:right-6 lg:bottom-24 lg:right-8",
+  });
+
   var icon = CivicUI.icon;
   $("#hero-search-icon").html(icon("search", "h-5 w-5"));
 
-  /* ---------------- Feature cards ---------------- */
   var features = [
     { href: "events.html", icon: "calendar", title: "Events", text: "Find and register for city events" },
     { href: "announcements.html", icon: "megaphone", title: "Announcements", text: "Listen to or read city updates" },
@@ -33,7 +27,7 @@ CivicApp.start(function () {
       .join("")
   );
 
-  /* ---------------- Visitors: sign-in prompt ---------------- */
+  // Event and announcement routes require a token, so visitors get a sign-in prompt instead of data.
   if (!CivicAuth.isLoggedIn()) {
     var prompt = function (what) {
       return CivicUI.emptyState(
@@ -50,13 +44,19 @@ CivicApp.start(function () {
     return;
   }
 
-  /* ---------------- Signed in: load real data ---------------- */
   function loadEvents() {
     var $list = $("#featured-events").html(CivicUI.skeletonCards(3));
-    CivicApi.get("/events")
-      .then(function (body) {
+    var mine = CivicAuth.isAdmin()
+      ? Promise.resolve({ data: [] })
+      : CivicApi.get("/event-registrations/my-registrations").catch(function () { return { data: [] }; });
+
+    Promise.all([CivicApi.get("/events"), mine])
+      .then(function (res) {
+        var body = res[0];
+        var registered = {};
+        (res[1].data || []).forEach(function (r) { if (r.status === "registered") registered[r.event_id] = true; });
         var now = Date.now();
-        // Only published, not-finished events, soonest first (the API already sorts by starts_at).
+
         var upcoming = (body.data || []).filter(function (e) {
           var ended = e.ends_at && new Date(e.ends_at).getTime() < now;
           return CivicUtils.toBool(e.published) && !ended;
@@ -66,7 +66,7 @@ CivicApp.start(function () {
           $list.html(CivicUI.emptyState("No upcoming events yet", "New events will appear here as soon as the city publishes them."));
           return;
         }
-        $list.html(upcoming.slice(0, 3).map(function (e) { return CivicCards.event(e); }).join(""));
+        $list.html(upcoming.slice(0, 3).map(function (e) { return CivicCards.event(e, { registered: !!registered[e.id], registerable: true }); }).join(""));
       })
       .catch(function (err) {
         $list.html(CivicUI.errorState(err));
