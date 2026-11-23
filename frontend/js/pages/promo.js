@@ -1,17 +1,3 @@
-/*
- * Promo detail (promo.html?id=...)
- * ---------------------------------------------------------------
- * APIs:
- *   GET    /api/promos/:id
- *   PATCH  /api/promos/:id/publish | /unpublish   (admin)
- *   DELETE /api/promos/:id                        (admin)
- *
- * Video: native <video controls> gives play/pause, volume, fullscreen
- * and a CC button, all keyboard accessible.
- * Captions: built from caption_text by CivicMedia.attachCaptions()
- * (see js/components/media.js) and shown by default.
- * The full caption text is also printed below as a transcript.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -46,14 +32,12 @@ CivicApp.start(function () {
         "</div>" +
         '<h1 id="promo-title" class="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">' + esc(promo.title) + "</h1>" +
         '<p id="promo-desc" class="mt-3 max-w-prose text-base text-foreground/85">' + esc(promo.description || "") + "</p>" +
-
         '<section class="mt-8" aria-labelledby="transcript-title">' +
           '<h2 id="transcript-title" class="text-lg font-bold">Transcript</h2>' +
           (hasCaptions
             ? '<div class="mt-2 whitespace-pre-line rounded-xl border border-border bg-card p-5 text-sm leading-relaxed shadow-card">' + esc(promo.caption_text) + "</div>"
             : '<p class="mt-2 rounded-xl border border-dashed border-border bg-card p-5 text-sm text-muted-foreground">No transcript was provided for this video.</p>') +
         "</section>" +
-
         (isAdmin
           ? '<section class="mt-8 rounded-xl border border-border bg-card p-5 shadow-card" aria-labelledby="admin-title">' +
               '<h2 id="admin-title" class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Admin actions</h2>' +
@@ -68,6 +52,7 @@ CivicApp.start(function () {
     );
 
     var video = document.getElementById("promo-video");
+    // Captions are switched on by default so Deaf and hard-of-hearing viewers don't have to find the CC button.
     CivicMedia.attachCaptions(video, promo.caption_text);
     $(video).on("loadedmetadata", function () {
       if (isFinite(video.duration)) $("#video-length").text(U.formatDuration(video.duration));

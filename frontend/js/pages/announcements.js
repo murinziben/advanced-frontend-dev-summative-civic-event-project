@@ -1,18 +1,3 @@
-/*
- * Announcements list (announcements.html)
- * ---------------------------------------------------------------
- * API: GET /api/announcements?limit=100
- *   (the backend pages this list – default 20 – so we ask for up to 100)
- * Each item: { id, title, audio_url, published, created_at }
- *
- * - Normal users see only published announcements.
- * - Admins also see unpublished ones, with a status label and a
- *   "Manage" shortcut (ROLE-BASED UI).
- * - The list is cached for 2 minutes (CivicCache) and refreshed
- *   whenever an admin changes an announcement.
- * - The backend doesn't store the length (duration_seconds), so each
- *   card reads it from the audio file's metadata.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -23,6 +8,7 @@ CivicApp.start(function () {
   function render() {
     var q = $("#search").val().trim().toLowerCase();
     var list = items.filter(function (a) {
+      // ROLE GUARD: residents only see published announcements.
       if (!isAdmin && !U.toBool(a.published)) return false;
       return !q || (a.title || "").toLowerCase().indexOf(q) !== -1;
     });
@@ -58,12 +44,12 @@ CivicApp.start(function () {
       }).join("")
     );
 
-    // Build an accessible audio player inside each card.
     list.forEach(function (a) {
       CivicMedia.audioPlayer($list.find('[data-player-for="' + a.id + '"]'), {
         src: a.audio_url,
         title: a.title,
         compact: true,
+        // The backend doesn't store the length, so it's read from the audio file.
         onDuration: function (sec) { $list.find('[data-duration-for="' + a.id + '"]').text(U.formatDuration(sec) + " audio"); },
       });
     });

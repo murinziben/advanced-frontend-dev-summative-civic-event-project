@@ -1,17 +1,3 @@
-/*
- * Promos list (promos.html)
- * ---------------------------------------------------------------
- * API: GET /api/promos?limit=100
- *   → { data: [ { id, title, description, video_url, caption_text, published, created_at } ], pagination }
- *
- * - Thumbnails: the backend has no thumbnail field, so each card shows
- *   the video's first frame (<video preload="metadata"> + "#t=0.5").
- *   preload="metadata" is a form of lazy loading: the browser downloads
- *   only the size/length and first frame, not the whole video.
- * - "CC" badge when caption text exists.
- * - Cached for 2 minutes (brief: "Cache lists … e.g. promos").
- * - Users see only published promos; admins see all (ROLE-BASED UI).
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -22,6 +8,7 @@ CivicApp.start(function () {
   function render() {
     var q = $("#search").val().trim().toLowerCase();
     var list = promos.filter(function (p) {
+      // ROLE GUARD: residents only see published promos.
       if (!isAdmin && !U.toBool(p.published)) return false;
       return !q || [p.title, p.description].join(" ").toLowerCase().indexOf(q) !== -1;
     });
@@ -38,6 +25,7 @@ CivicApp.start(function () {
         return (
           '<article class="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card transition hover:-translate-y-0.5 hover:shadow-lift">' +
             '<a href="' + href + '" class="relative block aspect-video overflow-hidden bg-foreground" aria-label="Play ' + esc(p.title) + '">' +
+              // No thumbnails in the backend: the first frame acts as one, and preload="metadata" avoids downloading the whole video.
               '<video src="' + esc(p.video_url) + '#t=0.5" preload="metadata" muted playsinline tabindex="-1" aria-hidden="true" class="h-full w-full object-cover opacity-90 transition group-hover:scale-[1.03]"></video>' +
               '<span class="absolute inset-0 flex items-center justify-center" aria-hidden="true">' +
                 '<span class="flex h-14 w-14 items-center justify-center rounded-full bg-white/95 text-primary shadow-lift transition group-hover:scale-110">' +
@@ -59,7 +47,6 @@ CivicApp.start(function () {
       }).join("")
     );
 
-    // When each video's length is known, show "2:34 · CC" like the design.
     $list.find("video").each(function () {
       var video = this;
       var $badge = $(video).closest("a").find("[data-length-for]");

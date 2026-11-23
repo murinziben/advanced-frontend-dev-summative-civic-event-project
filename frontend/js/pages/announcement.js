@@ -1,18 +1,3 @@
-/*
- * Announcement detail (announcement.html?id=...)
- * ---------------------------------------------------------------
- * APIs:
- *   GET    /api/announcements/:id
- *   PATCH  /api/announcements/:id/publish     (admin)
- *   PATCH  /api/announcements/:id/unpublish   (admin)
- *   DELETE /api/announcements/:id             (admin)
- *
- * Audio: HTML5 <audio> with source = audio_url, wrapped in the
- * accessible CivicMedia player (play/pause, seek, time, volume).
- *
- * Transcript: the provided backend has no transcript field, so we
- * say so clearly instead of inventing text.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -37,13 +22,12 @@ CivicApp.start(function () {
         "</div>" +
         '<h1 id="announcement-title" class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">' + esc(item.title) + "</h1>" +
         '<p class="mt-2 text-muted-foreground">Issued by the City of Greenhill</p>' +
-
         '<section class="mt-8 rounded-xl border border-border bg-card p-5 shadow-card" aria-labelledby="listen-title">' +
           '<h2 id="listen-title" class="mb-3 text-sm font-semibold">Listen <span id="duration-label" class="font-normal text-muted-foreground"></span></h2>' +
           '<div id="player"></div>' +
           '<p class="mt-3 text-xs text-muted-foreground">Tip: use Tab to reach the controls, Space or Enter to play and pause, and the arrow keys on the slider to move through the recording.</p>' +
         "</section>" +
-
+        // The backend has no transcript field, so we say so instead of inventing one.
         '<section class="mt-8" aria-labelledby="transcript-title">' +
           '<h2 id="transcript-title" class="text-lg font-bold">Transcript</h2>' +
           '<p class="mt-2 rounded-xl border border-dashed border-border bg-card p-5 text-sm text-muted-foreground">' +
@@ -51,7 +35,7 @@ CivicApp.start(function () {
             '<a class="font-semibold text-primary hover:underline" href="mailto:' + esc(CivicConfig.CONTACT.email) + '">' + esc(CivicConfig.CONTACT.email) + "</a>." +
           "</p>" +
         "</section>" +
-
+        // ROLE GUARD: publish/edit/delete only for admins.
         (isAdmin
           ? '<section class="mt-8 rounded-xl border border-border bg-card p-5 shadow-card" aria-labelledby="admin-title">' +
               '<h2 id="admin-title" class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Admin actions</h2>' +
