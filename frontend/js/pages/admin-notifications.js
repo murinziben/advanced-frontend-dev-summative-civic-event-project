@@ -1,16 +1,3 @@
-/*
- * Admin – notifications (admin/notifications.html)
- * ---------------------------------------------------------------
- * APIs:
- *   GET    /api/notifications       (admin sees broadcasts + ones sent to the admin)
- *   DELETE /api/notifications/:id   admin only
- *
- * BACKEND LIMITATION: the provided backend has NO route to create a
- * custom broadcast (the controller function exists but isn't connected
- * to a route). Broadcasts are created automatically by the backend when
- * an admin creates an event, an announcement or a promo, or publishes
- * an announcement/promo. This page explains that and links to those forms.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -18,7 +5,10 @@ CivicApp.start(function () {
 
   var items = [];
   var $body = $("#notifications-body");
+  var page = 1;
+  var PER_PAGE = 10;
 
+  // The backend has no route for custom broadcasts; they're created automatically with events, announcements and promos.
   function render() {
     var q = $("#search").val().trim().toLowerCase();
     var type = $("#type").val();
@@ -30,11 +20,18 @@ CivicApp.start(function () {
 
     if (!list.length) {
       $body.html(CivicAdminLayout.tableMessage(4, CivicUI.emptyState("No notifications", items.length ? "Nothing matches your filters." : "Notifications appear when you create events, announcements or promos.")));
+      $("#notifications-pagination").empty();
       return;
     }
 
+    if (page > CivicPagination.totalPages(list.length, PER_PAGE)) page = 1;
+    CivicPagination.render("#notifications-pagination", {
+      page: page, totalItems: list.length, perPage: PER_PAGE,
+      onChange: function (p) { page = p; render(); },
+    });
+
     $body.html(
-      list.map(function (n) {
+      CivicPagination.slice(list, page, PER_PAGE).map(function (n) {
         return (
           '<tr class="border-b border-border last:border-0 hover:bg-muted/40">' +
             '<td class="px-4 py-3"><p class="font-semibold">' + esc(n.title) + '</p><p class="text-sm text-muted-foreground">' + esc(n.message) + "</p></td>" +
@@ -58,7 +55,6 @@ CivicApp.start(function () {
       });
   }
 
-  /* Delete – optimistic with undo */
   $body.on("click", "[data-delete]", function () {
     var id = $(this).attr("data-delete");
     var n = items.filter(function (x) { return x.id === id; })[0];
@@ -78,7 +74,7 @@ CivicApp.start(function () {
       });
   });
 
-  $("#search").on("input", U.debounce(render, 200));
-  $("#type").on("change", render);
+  $("#search").on("input", U.debounce(function () { page = 1; render(); }, 200));
+  $("#type").on("change", function () { page = 1; render(); });
   load();
 });

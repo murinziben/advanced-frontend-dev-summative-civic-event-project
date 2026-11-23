@@ -1,14 +1,3 @@
-/*
- * Admin – manage events (admin/events.html)
- * ---------------------------------------------------------------
- * APIs:
- *   GET    /api/events        every event (published and unpublished)
- *   DELETE /api/events/:id    delete (admin only on the server too)
- *
- * Note: the provided backend has no publish/unpublish endpoint for events
- * and ignores a `published` field on create/update, so this table shows
- * the status but can't toggle it (documented in the README).
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -18,6 +7,7 @@ CivicApp.start(function () {
   var page = 1;
   var PER_PAGE = 10;
   var $body = $("#events-body");
+  if (U.getQueryParam("q")) $("#search").val(U.getQueryParam("q"));
 
   function filtered() {
     var q = $("#search").val().trim().toLowerCase();
@@ -63,6 +53,7 @@ CivicApp.start(function () {
             "</td>" +
             '<td class="whitespace-nowrap px-4 py-3 text-sm">' + esc(U.formatDate(e.starts_at)) + '<br><span class="text-xs text-muted-foreground">' + esc(U.formatTimeRange(e.starts_at, e.ends_at)) + "</span></td>" +
             '<td class="px-4 py-3"><span class="rounded-full px-2.5 py-1 text-xs font-semibold ' + timing.cls + '">' + timing.label + "</span></td>" +
+            // The backend can't unpublish events, so the status is shown without a toggle.
             '<td class="px-4 py-3">' + CivicAdminLayout.statusBadge(e.published) + "</td>" +
             '<td class="px-4 py-3">' +
               '<div class="flex justify-end gap-1.5">' +
@@ -86,7 +77,6 @@ CivicApp.start(function () {
     $body.html(CivicAdminLayout.tableSkeleton(5, 5));
     CivicApi.get("/events")
       .then(function (res) {
-        // Newest start date first for management.
         events = (res.data || []).sort(function (a, b) { return new Date(b.starts_at) - new Date(a.starts_at); });
         render();
       })
@@ -119,6 +109,7 @@ CivicApp.start(function () {
         })
         .catch(function (err) {
           CivicUI.setButtonLoading($btn, false);
+          // Registrations reference the event without ON DELETE CASCADE.
           CivicUI.toast("error", /foreign key|violates/i.test(err.message || "")
             ? "“" + title + "” can't be deleted because people have registered for it."
             : err.message);

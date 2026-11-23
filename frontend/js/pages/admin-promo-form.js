@@ -1,17 +1,3 @@
-/*
- * Admin – create / edit promo video (admin/promo-form.html[?id=...])
- * ---------------------------------------------------------------
- * APIs (admin only):
- *   POST  /api/promos       multipart: title*, description*, caption_text*, video* (file key "video")
- *   PUT   /api/promos/:id   multipart: title*, description*, caption_text*, published, video (optional)
- *   PATCH /api/promos/:id/unpublish   (used after creating a draft – see below)
- *
- * Backend facts (backend/src/routes/promos.routes.js):
- *   - title, description AND caption_text are all required.
- *   - Upload middleware: uploadPromoVideo.single('video'), max 8 MB.
- *   - New promos are always created as published, so if the admin
- *     unticks "Published" we call /unpublish right after creating it.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   CivicAdminLayout.init();
@@ -55,7 +41,6 @@ CivicApp.start(function () {
     $("#published-label").text(this.checked ? "Published – residents can see it" : "Draft – only admins can see it");
   }).trigger("change");
 
-  // Live word count for the captions.
   $("#caption_text").on("input", function () {
     var words = this.value.trim() ? this.value.trim().split(/\s+/).length : 0;
     $("#caption-count").text(words + (words === 1 ? " word" : " words"));
@@ -87,13 +72,14 @@ CivicApp.start(function () {
     data.append("caption_text", $("#caption_text").val().trim());
     if (editing) data.append("published", published ? "true" : "false");
     var file = videoField.getFile();
-    if (file) data.append("video", file); // key must be "video"
+    // The key must be "video" to match uploadPromoVideo.single('video').
+    if (file) data.append("video", file);
 
     CivicUI.setButtonLoading($submit, true, file ? "Uploading…" : "Saving…");
 
     CivicApi.upload(editing ? "PUT" : "POST", editing ? "/promos/" + encodeURIComponent(id) : "/promos", data, file ? videoField.setProgress : null)
       .then(function (body) {
-        // New promos are created as published; turn it into a draft if asked.
+        // New promos are always created as published, so a draft is unpublished right after creation.
         if (!editing && !published && body.data && body.data.id) {
           return CivicApi.patch("/promos/" + encodeURIComponent(body.data.id) + "/unpublish");
         }

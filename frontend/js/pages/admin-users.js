@@ -1,18 +1,3 @@
-/*
- * Admin – user management (admin/users.html)
- * ---------------------------------------------------------------
- * APIs (admin only on the server):
- *   GET   /api/users?limit=1000      list (the API pages it; no total count)
- *   GET   /api/users/:id             one user (shown in a dialog)
- *   PATCH /api/users/:id/enable
- *   PATCH /api/users/:id/disable
- *
- * RULES (from the brief):
- *   - Admins can enable/disable accounts.
- *   - Admins CANNOT change anyone's role from the UI – there is
- *     deliberately no role control on this page.
- *   - We also stop an admin from disabling their own account.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -38,12 +23,14 @@ CivicApp.start(function () {
 
   function roleBadge(role) {
     return role === "admin"
-      ? '<span class="rounded-full bg-secondary-soft px-2.5 py-1 text-xs font-semibold text-secondary-foreground">Admin</span>'
+      ? '<span class="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700">Admin</span>'
       : '<span class="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-semibold text-primary">User</span>';
   }
 
+  // No role control anywhere on this page: the assessment forbids changing roles from the UI.
   function statusSwitch(u) {
     var active = U.toBool(u.is_active);
+    // Admins can't disable themselves, so they can't lock themselves out.
     var self = u.id === me.id;
     return (
       '<button type="button" role="switch" aria-checked="' + active + '" data-toggle="' + esc(u.id) + '"' + (self ? ' disabled title="You can\'t disable your own account"' : "") +
@@ -103,7 +90,6 @@ CivicApp.start(function () {
       });
   }
 
-  /* View one user (GET /api/users/:id) in a dialog */
   $body.on("click", "[data-view]", function () {
     var id = $(this).attr("data-view");
     var d = CivicUI.dialog({ title: "User details", html: '<div class="skeleton h-24 w-full"></div><span class="sr-only" role="status">Loading…</span>' });
@@ -127,7 +113,6 @@ CivicApp.start(function () {
       .catch(function (err) { d.$body.html('<p class="text-sm text-destructive" role="alert">' + esc(err.message) + "</p>"); });
   });
 
-  /* Enable / disable – confirm before disabling, optimistic update, undo on failure */
   $body.on("click", "[data-toggle]", function () {
     var id = $(this).attr("data-toggle");
     var u = users.filter(function (x) { return x.id === id; })[0];

@@ -1,20 +1,3 @@
-/*
- * Admin – create / edit event (admin/event-form.html  or  ?id=... to edit)
- * ---------------------------------------------------------------
- * APIs (both multipart/form-data, admin only):
- *   POST /api/events       fields: title*, description, location*, starts_at*, ends_at*, image (file)
- *   PUT  /api/events/:id   same fields, all optional; a new image replaces the old one
- *   GET  /api/events/:id   to fill the form when editing
- *
- * The backend's upload middleware is uploadEventImage.single('image'),
- * so the file MUST be sent under the key "image". After saving, the
- * backend stores the public URL in metadata.image_url
- * (http://localhost:4000/uploads/events/<filename>).
- *
- * WHY FormData? A file can't be sent as JSON. FormData builds a
- * multipart/form-data request where text fields and the file travel
- * together. CivicApi.upload() lets the browser set the Content-Type.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   CivicAdminLayout.init();
@@ -74,6 +57,7 @@ CivicApp.start(function () {
     if (!start) fail("#starts_at", "Choose when the event starts.");
     if (!end) fail("#ends_at", "Choose when the event ends.");
     if (start && end && new Date(end) <= new Date(start)) fail("#ends_at", "The end must be after the start.");
+    // Only new events: an existing event that already started can still be edited.
     if (!editing && start && new Date(start) < new Date()) fail("#starts_at", "New events must start in the future.");
 
     if (imageField && !imageField.isValid()) { ok = false; }
@@ -93,7 +77,8 @@ CivicApp.start(function () {
     data.append("starts_at", U.localInputToIso($("#starts_at").val()));
     data.append("ends_at", U.localInputToIso($("#ends_at").val()));
     var file = imageField.getFile();
-    if (file) data.append("image", file); // key must be "image" (uploadEventImage.single('image'))
+    // The key must be "image" to match uploadEventImage.single('image').
+    if (file) data.append("image", file);
 
     CivicUI.setButtonLoading($submit, true, file ? "Uploading…" : "Saving…");
 
@@ -105,7 +90,7 @@ CivicApp.start(function () {
       })
       .catch(function (err) {
         CivicUI.setButtonLoading($submit, false);
-        // Show the server's field errors next to the right inputs when possible.
+
         if (err.errors && err.errors.length) {
           err.errors.forEach(function (fe) { if (fe.field && $("#" + fe.field).length) CivicUI.showFieldError($("#" + fe.field), fe.message); });
         }

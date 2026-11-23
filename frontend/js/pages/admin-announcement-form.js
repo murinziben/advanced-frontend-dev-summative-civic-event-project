@@ -1,16 +1,3 @@
-/*
- * Admin – create / edit announcement (admin/announcement-form.html[?id=...])
- * ---------------------------------------------------------------
- * APIs (admin only):
- *   POST /api/announcements      multipart: title*, audio* (file key "audio"), published
- *   PUT  /api/announcements/:id  multipart: title*, published
- *   GET  /api/announcements/:id  to fill the form when editing
- *
- * Backend facts (backend/src/controllers/announcements.controller.js):
- *   - Creating one also creates a broadcast notification for everyone.
- *   - The update route accepts an audio file but never saves it, so when
- *     editing we only allow changing the title and published status.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   CivicAdminLayout.init();
@@ -26,7 +13,7 @@ CivicApp.start(function () {
   document.title = (editing ? "Edit announcement" : "New announcement") + " · CivicEvents";
 
   if (editing) {
-    // Replacing the recording isn't supported by the backend → show the current one instead.
+    // The update route ignores new audio files, so the recording can't be replaced when editing.
     $("#audio-group").html(
       '<p class="mb-1.5 text-sm font-semibold">Recording</p>' +
       '<div id="current-audio"></div>' +
@@ -70,7 +57,8 @@ CivicApp.start(function () {
     var data = new FormData();
     data.append("title", title);
     data.append("published", $("#published").is(":checked") ? "true" : "false");
-    if (!editing) data.append("audio", audioField.getFile()); // key must be "audio"
+    // The key must be "audio" to match uploadAudio.single('audio').
+    if (!editing) data.append("audio", audioField.getFile());
 
     CivicUI.setButtonLoading($submit, true, editing ? "Saving…" : "Uploading…");
 
