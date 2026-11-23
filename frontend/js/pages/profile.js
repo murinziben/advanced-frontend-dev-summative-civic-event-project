@@ -1,15 +1,3 @@
-/*
- * My profile (profile.html)
- * ---------------------------------------------------------------
- * APIs:
- *   GET   /api/users/profile/me          { id, full_name, email, role, is_active, created_at }
- *   PATCH /api/users/profile/me          body { full_name?, email? }
- *     → 409 "Email is already in use" if another account has that email
- *     → 400 if role or is_active are sent (the backend forbids it)
- *
- * Users can change only their name and email. Role and account status
- * are shown read-only – we never send them.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -29,7 +17,7 @@ CivicApp.start(function () {
       "</div>" +
       '<dl class="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6 text-sm">' +
         '<div><dt class="text-muted-foreground">Role</dt><dd class="mt-1"><span class="rounded-full px-2.5 py-1 text-xs font-semibold ' +
-          (profile.role === "admin" ? "bg-secondary-soft text-secondary-foreground" : "bg-primary-soft text-primary") + '">' + (profile.role === "admin" ? "Administrator" : "Resident") + "</span></dd></div>" +
+          (profile.role === "admin" ? "bg-violet-50 text-violet-700" : "bg-primary-soft text-primary") + '">' + (profile.role === "admin" ? "Administrator" : "Resident") + "</span></dd></div>" +
         '<div><dt class="text-muted-foreground">Account status</dt><dd class="mt-1"><span class="inline-flex items-center gap-1.5 text-xs font-semibold ' + (active ? "text-success" : "text-destructive") + '">' +
           '<span class="h-2 w-2 rounded-full ' + (active ? "bg-success" : "bg-destructive") + '" aria-hidden="true"></span>' + (active ? "Active" : "Disabled") + "</span></dd></div>" +
         '<div class="col-span-2"><dt class="text-muted-foreground">Member since</dt><dd class="mt-1 font-medium">' + esc(U.formatDate(profile.created_at)) + "</dd></div>" +
@@ -70,7 +58,7 @@ CivicApp.start(function () {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { CivicUI.showFieldError("#email", "Enter a valid email address, like name@example.com."); ok = false; }
     if (!ok) { $form.find("[aria-invalid=true]").first().trigger("focus"); return; }
 
-    // Send only what changed (never role or is_active).
+    // Only changed fields are sent; role and is_active never are, because the backend rejects them.
     var changes = {};
     if (name !== profile.full_name) changes.full_name = name;
     if (email.toLowerCase() !== String(profile.email).toLowerCase()) changes.email = email;
@@ -79,7 +67,7 @@ CivicApp.start(function () {
       return;
     }
 
-    // Changing the sign-in email deserves a confirmation.
+    // The email is the sign-in name, so changing it is confirmed first.
     var confirmStep = changes.email
       ? CivicUI.confirm({
           title: "Change your email?",
@@ -94,7 +82,7 @@ CivicApp.start(function () {
       CivicApi.patch("/users/profile/me", changes)
         .then(function (body) {
           profile = body.data || Object.assign(profile, changes);
-          CivicAuth.updateUser(profile); // keeps the header name/email in sync
+          CivicAuth.updateUser(profile);
           renderSummary();
           CivicUI.toast("success", "Your profile was updated.");
         })

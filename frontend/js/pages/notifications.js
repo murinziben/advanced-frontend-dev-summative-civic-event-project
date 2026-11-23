@@ -1,22 +1,3 @@
-/*
- * Notifications inbox (notifications.html[?id=...])
- * ---------------------------------------------------------------
- * APIs:
- *   GET    /api/notifications        broadcast notifications (recipient_id = null)
- *                                    + notifications sent to me (recipient_id = my id)
- *   DELETE /api/notifications/:id    admin only
- *
- * Each notification: { id, title, message, type, recipient_id, metadata, created_at }
- * metadata links to the related item: { event_id } / { announcement_id } / { promo_id }
- *
- * Read/unread: the backend has no endpoint to mark a notification as
- * read, so CivicNotifyStore remembers it in this browser (see
- * js/core/notify-store.js). Opening a notification marks it read
- * immediately – an "optimistic" update.
- *
- * Deleting (admins): the item disappears at once; if the server
- * refuses, it is put back and an error is shown.
- */
 CivicApp.start(function () {
   var U = CivicUtils;
   var esc = U.escapeHtml;
@@ -35,7 +16,6 @@ CivicApp.start(function () {
   };
   function typeInfo(type) { return TYPES[type] || { label: "System", icon: "info", cls: "bg-muted text-muted-foreground" }; }
 
-  /** Link to the related resource using metadata (e.g. event_id → event page). */
   function relatedLink(n) {
     var m = n.metadata || {};
     if (typeof m === "string") { try { m = JSON.parse(m); } catch (e) { m = {}; } }
@@ -71,10 +51,9 @@ CivicApp.start(function () {
               '<div class="flex items-start gap-3 p-4 sm:p-5">' +
                 '<span class="mt-0.5 rounded-lg p-2 ' + t.cls + '">' + icon(t.icon, "h-4 w-4") + "</span>" +
                 '<div class="min-w-0 flex-1">' +
-                  // The title is a disclosure button: it shows/hides the full message.
                   '<button type="button" data-open="' + esc(n.id) + '" aria-expanded="' + open + '" aria-controls="detail-' + esc(n.id) + '" class="block w-full text-left">' +
                     '<span class="flex flex-wrap items-center gap-2">' +
-                      (unread ? '<span class="h-2 w-2 rounded-full bg-secondary" aria-hidden="true"></span><span class="sr-only">Unread:</span>' : "") +
+                      (unread ? '<span class="h-2 w-2 rounded-full bg-primary" aria-hidden="true"></span><span class="sr-only">Unread:</span>' : "") +
                       '<span class="text-sm ' + (unread ? "font-bold" : "font-semibold") + '">' + esc(n.title) + "</span>" +
                     "</span>" +
                     '<span class="mt-0.5 block text-sm text-muted-foreground ' + (open ? "" : "truncate") + '">' + esc(n.message) + "</span>" +
@@ -93,7 +72,6 @@ CivicApp.start(function () {
                     "</div>" +
                   "</div>" +
                 "</div>" +
-                // ADMIN UI GUARD: delete button only for admins (server also checks).
                 (isAdmin ? '<button type="button" data-delete="' + esc(n.id) + '" class="rounded-lg p-2 text-muted-foreground hover:bg-destructive-soft hover:text-destructive" aria-label="Delete notification: ' + esc(n.title) + '">' +
                   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-4 w-4" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>' : "") +
               "</div>" +
@@ -122,11 +100,11 @@ CivicApp.start(function () {
       });
   }
 
-  /* Open / close a notification (and mark it read) */
   $list.on("click", "[data-open]", function () {
     var id = $(this).attr("data-open");
     openId = openId === id ? null : id;
-    if (openId) CivicNotifyStore.markRead(id); // optimistic: marked read at once
+    // Marked read immediately: it's stored locally, so it can't fail.
+    if (openId) CivicNotifyStore.markRead(id);
     render();
     $list.find('[data-open="' + id + '"]').trigger("focus");
   });
@@ -140,13 +118,13 @@ CivicApp.start(function () {
     CivicUI.toast("info", "Marked as unread.");
   });
 
-  /* Admin delete – optimistic with undo on failure */
   $list.on("click", "[data-delete]", function () {
     var id = $(this).attr("data-delete");
     var n = items.filter(function (x) { return x.id === id; })[0];
     CivicUI.confirm({ title: "Delete this notification?", message: "“" + n.title + "” will be removed for everyone who can see it.", confirmText: "Delete", danger: true })
       .then(function (ok) {
         if (!ok) return;
+        // Removed straight away and restored if the server refuses.
         var backup = items.slice();
         items = items.filter(function (x) { return x.id !== id; });
         render();

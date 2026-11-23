@@ -4,24 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Notifications · CivicEvents</title>
+  <link rel="icon" type="image/png" href="./assets/images/favicon.png" />
   <meta name="description" content="Notifications – CivicEvents, City of Greenhill." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="./js/tailwind.config.js"></script>
   <link rel="stylesheet" href="./css/styles.css" />
 </head>
-<!-- PAGE GUARD: data-guard="auth" → must be signed in (js/core/guards.js) -->
+<!-- Role guard: signed-in users only (js/core/guards.js). -->
 <body data-root="./" data-guard="auth" data-page="notifications" class="flex min-h-screen flex-col bg-background">
   <div id="site-header"></div>
 
   <main id="main" tabindex="-1" class="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
       <header class="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-extrabold tracking-tight">Notifications</h1>
+          <h1 class="text-2xl font-bold tracking-tight text-navy sm:text-3xl">Notifications</h1>
           <p class="mt-2 text-muted-foreground"><span id="unread-summary">Loading…</span></p>
         </div>
         <a href="admin/notifications.html" data-show-for="admin" class="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-card px-4 py-2.5 text-sm font-semibold transition hover:bg-muted">Manage notifications</a>
@@ -41,7 +42,7 @@
 
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-  <!-- Core -->
+  <!-- Order matters: each script depends on the ones above it. -->
   <script src="./js/config.js"></script>
   <script src="./js/core/utils.js"></script>
   <script src="./js/core/auth.js"></script>
@@ -52,8 +53,6 @@
   <script src="./js/core/notify-store.js"></script>
   <script src="./js/core/layout.js"></script>
   <script src="./js/core/app.js"></script>
-
-  <!-- Page -->
   <script src="./js/pages/notifications.js"></script>
 </body>
 </html>
