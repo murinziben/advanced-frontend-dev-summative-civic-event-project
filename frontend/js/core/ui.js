@@ -1,19 +1,6 @@
-/*
- * CivicUI – reusable interface pieces built with jQuery.
- * ---------------------------------------------------------------
- *  - toast()          small success/error messages in the corner
- *  - confirm()        accessible "Are you sure?" dialog (returns a Promise)
- *  - setButtonLoading() spinner + disabled state while a request runs
- *  - showFieldError() / clearFormErrors()  accessible form validation
- *  - skeletonCards() / emptyState() / errorState()  list placeholders
- *  - icon()           inline SVG icons (no icon library needed)
- */
 window.CivicUI = (function () {
   var esc = function (v) { return window.CivicUtils.escapeHtml(v); };
 
-  /* ------------------------------------------------------------------ */
-  /* Icons – simple stroke icons (Lucide-style) so we don't add a library */
-  /* ------------------------------------------------------------------ */
   var ICONS = {
     landmark: '<path d="M3 22h18"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M12 2 20 7H4z"/>',
     calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
@@ -42,10 +29,19 @@ window.CivicUI = (function () {
     refresh: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
     wifiOff: '<path d="m2 2 20 20"/><path d="M8.5 16.5a5 5 0 0 1 7 0M2 8.82a15 15 0 0 1 4.17-2.65M10.66 5c4.01-.36 8.14.9 11.34 3.76M16.85 11.25a10 10 0 0 1 2.22 1.68M5 13a10 10 0 0 1 5.24-2.76"/><path d="M12 20h.01"/>',
     inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+    tag: '<path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>',
+    chevronRight: '<path d="m9 18 6-6-6-6"/>',
+    chevronsLeft: '<path d="m11 17-5-5 5-5M18 17l-5-5 5-5"/>',
+    zap: '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+    trendingUp: '<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>',
+    trendingDown: '<path d="M22 17 13.5 8.5 8.5 13.5 2 7"/><path d="M16 17h6v-6"/>',
+    userPlus: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+    calendarPlus: '<path d="M8 2v4M16 2v4M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18M16 19h6M19 16v6"/>',
     shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
   };
 
-  /** Returns an <svg> string. Decorative by default (aria-hidden). */
+  // Inline SVG avoids adding an icon library; icons are aria-hidden because the text next to them carries the meaning.
   function icon(name, classes) {
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
@@ -54,13 +50,10 @@ window.CivicUI = (function () {
     );
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Toasts                                                              */
-  /* ------------------------------------------------------------------ */
   function toastRegion() {
+    // aria-live lets screen readers announce toasts without moving focus.
     var $region = $("#toast-region");
     if (!$region.length) {
-      // aria-live="polite" makes screen readers read new toasts aloud.
       $region = $(
         '<div id="toast-region" class="fixed bottom-4 right-4 z-[60] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2" aria-live="polite" aria-atomic="false"></div>'
       );
@@ -69,9 +62,6 @@ window.CivicUI = (function () {
     return $region;
   }
 
-  /**
-   * toast("success" | "error" | "warning" | "info", "Message")
-   */
   function toast(type, message, timeoutMs) {
     var styles = {
       success: { icon: "checkCircle", cls: "border-success/30", iconCls: "text-success" },
@@ -99,20 +89,12 @@ window.CivicUI = (function () {
     setTimeout(close, timeoutMs || (type === "error" ? 7000 : 4500));
   }
 
-  /** Shows a message saved before a redirect (e.g. "Account created"). */
   function showFlash() {
     var flash = window.CivicAuth.takeFlash();
     if (flash) toast(flash.type, flash.message);
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Confirmation dialog                                                 */
-  /* ------------------------------------------------------------------ */
-  /**
-   * CivicUI.confirm({ title, message, confirmText, danger }) → Promise<boolean>
-   * Accessible: role="dialog", focus moves into the dialog, Tab stays inside,
-   * Esc cancels, and focus returns to the button that opened it.
-   */
+  // Focus is moved in, trapped and restored so keyboard users never get lost behind the dialog.
   function confirmDialog(options) {
     var o = Object.assign(
       { title: "Are you sure?", message: "", confirmText: "Confirm", cancelText: "Cancel", danger: false },
@@ -152,7 +134,6 @@ window.CivicUI = (function () {
       $(document).on("keydown.civicConfirm", function (e) {
         if (e.key === "Escape") finish(false);
         if (e.key === "Tab") {
-          // Focus trap: keep Tab inside the two buttons.
           var $buttons = $modal.find("button");
           var first = $buttons.get(0);
           var last = $buttons.get($buttons.length - 1);
@@ -166,11 +147,6 @@ window.CivicUI = (function () {
     });
   }
 
-  /**
-   * CivicUI.dialog({ title, html }) – an accessible pop-up for showing details.
-   * Same keyboard rules as confirm(): focus inside, Tab trapped, Esc closes.
-   * Returns { close, $body } so the caller can fill it after loading data.
-   */
   function dialog(options) {
     var previousFocus = document.activeElement;
     var $modal = $(
@@ -206,10 +182,6 @@ window.CivicUI = (function () {
     return { close: close, $body: $modal.find("[data-dialog-body]") };
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Buttons & forms                                                     */
-  /* ------------------------------------------------------------------ */
-  /** Shows a spinner in a button and disables it while a request runs. */
   function setButtonLoading($btn, loading, loadingText) {
     $btn = $($btn);
     if (loading) {
@@ -227,11 +199,7 @@ window.CivicUI = (function () {
     }
   }
 
-  /**
-   * Shows an error under a form field.
-   * Sets aria-invalid and links the message with aria-describedby,
-   * so screen readers announce the problem when the field is focused.
-   */
+  // aria-describedby links the message to the field so screen readers read it when the field is focused.
   function showFieldError(input, message) {
     var $input = $(input);
     var id = $input.attr("id");
@@ -247,7 +215,6 @@ window.CivicUI = (function () {
       .attr("id", errorId)
       .html(icon("alert", "h-3.5 w-3.5 shrink-0") + "<span>" + esc(message) + "</span>");
 
-    // Put the message after the field (or after its wrapper if it has one).
     var $anchor = $input.closest("[data-field]").length ? $input.closest("[data-field]") : $input;
     $anchor.after($msg);
   }
@@ -267,7 +234,6 @@ window.CivicUI = (function () {
     $(form).find("[data-form-alert]").addClass("hidden").empty();
   }
 
-  /** A banner at the top of a form for errors that aren't about one field. */
   function showFormAlert(form, message) {
     var $alert = $(form).find("[data-form-alert]");
     $alert
@@ -278,10 +244,6 @@ window.CivicUI = (function () {
       );
   }
 
-  /* ------------------------------------------------------------------ */
-  /* List placeholders                                                   */
-  /* ------------------------------------------------------------------ */
-  /** Grey shimmering cards shown while a list is loading. */
   function skeletonCards(count, withImage) {
     var html = "";
     for (var i = 0; i < (count || 3); i++) {
@@ -299,7 +261,6 @@ window.CivicUI = (function () {
     return html + '<span class="sr-only" role="status">Loading…</span>';
   }
 
-  /** Friendly "nothing here" message. */
   function emptyState(title, message, actionHtml) {
     return (
       '<div class="col-span-full flex flex-col items-center rounded-xl border border-dashed border-border bg-card px-6 py-14 text-center">' +
@@ -311,11 +272,6 @@ window.CivicUI = (function () {
     );
   }
 
-  /**
-   * Error message with a "Try again" button.
-   * Usage: $list.html(CivicUI.errorState(err)); then
-   *        $list.find("[data-retry]").on("click", loadAgain);
-   */
   function errorState(error) {
     var offline = error && error.isNetworkError;
     return (

@@ -1,15 +1,5 @@
-/*
- * CivicUtils – small helper functions used everywhere.
- * ---------------------------------------------------------------
- * Nothing here talks to the server. These are pure helpers for
- * formatting dates, escaping text, building links, etc.
- */
 window.CivicUtils = (function () {
-  /**
-   * escapeHtml – makes text safe to put inside HTML.
-   * WHY: data from the API (titles, comments) could contain "<script>".
-   * If we inserted it directly we would create an XSS security hole.
-   */
+  // API text (titles, comments) is inserted as HTML, so it must be escaped to prevent XSS.
   function escapeHtml(value) {
     if (value === null || value === undefined) return "";
     return String(value)
@@ -20,18 +10,12 @@ window.CivicUtils = (function () {
       .replace(/'/g, "&#39;");
   }
 
-  /**
-   * url – builds a link that works from any folder.
-   * Pages in /admin/ set <body data-root="../">, pages at the top level
-   * set <body data-root="./">. So url("events.html") always points to
-   * frontend/events.html.
-   */
+  // Admin pages live one folder deeper; data-root on <body> keeps links correct from both levels.
   function url(path) {
     var root = document.body ? document.body.getAttribute("data-root") || "./" : "./";
     return root + path.replace(/^\//, "");
   }
 
-  /** Reads ?name=value from the current address bar. */
   function getQueryParam(name) {
     return new URLSearchParams(window.location.search).get(name);
   }
@@ -42,21 +26,18 @@ window.CivicUtils = (function () {
     return isNaN(d.getTime()) ? null : d;
   }
 
-  /** "Sat, 5 Dec 2026" – same style as the design. */
   function formatDate(value) {
     var d = toDate(value);
     if (!d) return "Date to be confirmed";
     return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
   }
 
-  /** "16:00" */
   function formatTime(value) {
     var d = toDate(value);
     if (!d) return "";
     return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   }
 
-  /** "16:00 – 21:00" */
   function formatTimeRange(start, end) {
     var s = formatTime(start);
     var e = formatTime(end);
@@ -64,14 +45,12 @@ window.CivicUtils = (function () {
     return s || e || "Time to be confirmed";
   }
 
-  /** "Sat, 5 Dec 2026 · 16:00" */
   function formatDateTime(value) {
     var d = toDate(value);
     if (!d) return "";
     return formatDate(d) + " · " + formatTime(d);
   }
 
-  /** "3 hours ago", "2 days ago" – used for notifications. */
   function timeAgo(value) {
     var d = toDate(value);
     if (!d) return "";
@@ -94,7 +73,6 @@ window.CivicUtils = (function () {
     return "just now";
   }
 
-  /** 102 seconds → "1:42" (audio/video length). */
   function formatDuration(totalSeconds) {
     if (!isFinite(totalSeconds) || totalSeconds < 0) return "0:00";
     var s = Math.floor(totalSeconds);
@@ -104,7 +82,6 @@ window.CivicUtils = (function () {
     return h > 0 ? h + ":" + String(m).padStart(2, "0") + ":" + sec : m + ":" + sec;
   }
 
-  /** "Jane Doe" → "JD" (avatar letters). */
   function initials(name) {
     if (!name) return "?";
     return name
@@ -115,7 +92,6 @@ window.CivicUtils = (function () {
       .join("");
   }
 
-  /** Waits until the user stops typing before running fn (used by search boxes). */
   function debounce(fn, wait) {
     var timer;
     return function () {
@@ -126,12 +102,11 @@ window.CivicUtils = (function () {
     };
   }
 
-  /** Backend sometimes returns booleans as strings ("true"). This normalises them. */
+  // Values sent as multipart form fields can come back as strings ("true").
   function toBool(value) {
     return value === true || value === "true" || value === 1 || value === "1";
   }
 
-  /** 2097152 → "2 MB" */
   function formatBytes(bytes) {
     if (!bytes) return "0 B";
     var units = ["B", "KB", "MB", "GB"];
@@ -139,11 +114,6 @@ window.CivicUtils = (function () {
     return (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1).replace(/\.0$/, "") + " " + units[i];
   }
 
-  /**
-   * validateFile – checks type and size BEFORE uploading.
-   * kind is "image", "audio" or "video" (rules come from CivicConfig.UPLOADS).
-   * Returns an error message, or "" when the file is fine.
-   */
   function validateFile(file, kind) {
     var rules = window.CivicConfig.UPLOADS[kind];
     if (!file || !rules) return "";
@@ -158,13 +128,12 @@ window.CivicUtils = (function () {
     return "";
   }
 
-  /** Converts a <input type="datetime-local"> value to an ISO string the API accepts. */
+  // datetime-local has no timezone; sending ISO stops the server from guessing it.
   function localInputToIso(value) {
     var d = toDate(value);
     return d ? d.toISOString() : "";
   }
 
-  /** Converts an ISO date from the API into the format a datetime-local input needs. */
   function isoToLocalInput(value) {
     var d = toDate(value);
     if (!d) return "";

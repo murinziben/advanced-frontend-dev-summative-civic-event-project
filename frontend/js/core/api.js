@@ -1,34 +1,10 @@
-/*
- * CivicApi – the ONE place that talks to the backend.
- * ---------------------------------------------------------------
- * WHAT IS AN API REQUEST?
- *   The browser sends a message to the server, e.g. "GET /api/events",
- *   and the server answers with data (JSON). The page then shows that data.
- *
- * WHAT IS AJAX?
- *   AJAX lets JavaScript send that request in the background, without
- *   reloading the page. jQuery gives us $.ajax() to do this.
- *
- * WHY ONE FILE?
- *   Every request needs the same things: the base URL, the
- *   "Authorization: Bearer <token>" header, error handling, and
- *   special handling for file uploads. Writing that once here avoids
- *   copying it into every page.
- *
- * Every function returns a Promise:
- *   CivicApi.get("/events")
- *     .then(function (body) { ... body.data ... })
- *     .catch(function (err) { ... err.message ... });
- *
- * Errors are always normalised to: { status, message, errors, isNetworkError }
- */
 window.CivicApi = (function () {
-  /** Turns a failed jqXHR into a friendly error object. */
+  // One error shape for every page, preferring the backend's own message (e.g. "Email already in use").
   function normaliseError(xhr) {
     var body = xhr.responseJSON || {};
     var status = xhr.status;
 
-    // status 0 = the request never reached the server (backend off, no internet, CORS)
+    // Status 0 means the request never reached the server (backend stopped or offline).
     if (status === 0) {
       return {
         status: 0,
@@ -53,22 +29,11 @@ window.CivicApi = (function () {
     return {
       status: status,
       isNetworkError: false,
-      // Prefer the backend's own message (e.g. "Email already in use").
       message: body.message || fallback[status] || fallback[500],
       errors: Array.isArray(body.errors) ? body.errors : [],
     };
   }
 
-  /**
-   * request – the core function. All shortcuts below call it.
-   * options:
-   *   method   "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
-   *   path     e.g. "/events" (added to CivicConfig.API_BASE_URL)
-   *   data     plain object → sent as JSON
-   *   formData FormData object → sent as multipart/form-data (file uploads)
-   *   auth     send the token? (default true)
-   *   onProgress function(percent) for upload progress bars
-   */
   function request(options) {
     var opts = Object.assign({ method: "GET", auth: true }, options);
     var token = window.CivicAuth.getToken();
@@ -81,15 +46,12 @@ window.CivicApi = (function () {
       timeout: 60000,
     };
 
-    // Attach "Authorization: Bearer <token>" to protected requests.
     if (opts.auth && token) {
       ajaxSettings.headers.Authorization = "Bearer " + token;
     }
 
+    // The browser must add the multipart boundary itself, so Content-Type is deliberately left unset.
     if (opts.formData) {
-      // FILE UPLOADS: let the browser build the multipart body.
-      // We must NOT set Content-Type ourselves – the browser adds the
-      // special "boundary" value that separates each field.
       ajaxSettings.data = opts.formData;
       ajaxSettings.processData = false;
       ajaxSettings.contentType = false;
@@ -116,8 +78,7 @@ window.CivicApi = (function () {
         .fail(function (xhr) {
           var error = normaliseError(xhr);
 
-          // 401 on a protected request = token missing, expired or invalid.
-          // Sign the user out and send them to the login page.
+          // A 401 on an authenticated call means the token is no longer valid, so the user is signed out.
           if (error.status === 401 && opts.auth && token) {
             window.CivicAuth.expireSession();
           }
@@ -144,7 +105,6 @@ window.CivicApi = (function () {
     del: function (path) {
       return request({ method: "DELETE", path: path });
     },
-    /** Multipart upload: method is "POST" or "PUT". */
     upload: function (method, path, formData, onProgress) {
       return request({ method: method, path: path, formData: formData, onProgress: onProgress });
     },

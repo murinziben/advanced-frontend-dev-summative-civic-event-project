@@ -1,16 +1,5 @@
-/*
- * CivicNotifyStore – remembers which notifications the user has read.
- * ---------------------------------------------------------------
- * WHY THIS EXISTS: the provided backend has a `read` column in the
- * notifications table but NO endpoint to change it (there is no
- * PATCH /api/notifications/:id/read). So read/unread status can't be
- * saved on the server.
- *
- * WORKAROUND: we keep a list of read notification IDs in localStorage,
- * one list per user. It works on this browser only, and that limitation
- * is documented in the README.
- */
 window.CivicNotifyStore = (function () {
+  // The backend has no endpoint to mark notifications as read, so read state is kept per user in this browser.
   function key() {
     var user = window.CivicAuth.getUser();
     return user ? "civic_read_notifications_" + user.id : null;
