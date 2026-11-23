@@ -1,10 +1,3 @@
-/*
- * Helpers shared by login.html and signup.html.
- * ---------------------------------------------------------------
- *  - draws the logo
- *  - "show / hide password" eye buttons
- *  - a simple email format check
- */
 window.CivicAuthPages = (function () {
   var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -13,10 +6,13 @@ window.CivicAuthPages = (function () {
   }
 
   function initLogo() {
-    $("#auth-logo").html(window.CivicLayout.logoHtml());
+    $("#auth-logo").html(
+      '<a href="' + window.CivicUtils.url("index.html") + '" class="inline-block">' +
+        '<img src="' + window.CivicUtils.url("assets/images/logo.png") + '" alt="CivicEvents – home" width="200" height="40" class="h-10 w-auto" />' +
+      "</a>"
+    );
   }
 
-  /** Any button with data-toggle-password="inputId" becomes an eye toggle. */
   function initPasswordToggles() {
     $("[data-toggle-password]").each(function () {
       var $btn = $(this);

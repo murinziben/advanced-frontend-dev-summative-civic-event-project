@@ -4,17 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create account · CivicEvents</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
   <meta name="description" content="Create a CivicEvents account to register for city events and receive updates." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="js/tailwind.config.js"></script>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 
+<!-- Role guard: signed-in users are redirected to their dashboard (js/core/guards.js). -->
 <body data-root="./" data-guard="guest" data-page="signup" class="min-h-screen bg-background">
   <a href="#main" class="skip-link">Skip to content</a>
 
@@ -58,7 +60,6 @@
                 aria-label="Show password" aria-pressed="false"></button>
             </div>
 
-            <!-- Password strength meter -->
             <div class="mt-2.5">
               <div class="flex gap-1.5" aria-hidden="true">
                 <span class="strength-bar h-1.5 flex-1 rounded-full bg-muted transition-colors"></span>
@@ -122,6 +123,7 @@
 
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
+  <!-- Order matters: each script depends on the ones above it. -->
   <script src="js/config.js"></script>
   <script src="js/core/utils.js"></script>
   <script src="js/core/auth.js"></script>

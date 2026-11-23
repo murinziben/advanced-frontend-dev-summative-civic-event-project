@@ -1,16 +1,3 @@
-/*
- * Login page
- * ---------------------------------------------------------------
- * API: POST /api/auth/login   body { email, password }
- * Success (200): data = { token, user: { id, full_name, email, role } }
- * Failure (401): { message: "Invalid credentials" }
- *
- * Flow:
- *   1. Check the fields in the browser first (fast feedback).
- *   2. Send the request with CivicApi (auth: false – we don't have a token yet).
- *   3. Save token + user with CivicAuth.saveSession().
- *   4. Redirect: back to the page they wanted (?next=) or to their dashboard.
- */
 CivicApp.start(function () {
   var $form = $("#login-form");
   var $email = $("#email");
@@ -20,19 +7,16 @@ CivicApp.start(function () {
   CivicAuthPages.initLogo();
   CivicAuthPages.initPasswordToggles();
 
-  // Pre-fill the email after signup (signup.html redirects with ?email=)
   var prefill = CivicUtils.getQueryParam("email");
   if (prefill) {
     $email.val(prefill);
     $password.trigger("focus");
   }
 
-  // Clear a field's error as soon as the user edits it.
   $form.on("input", "input", function () {
     CivicUI.clearFieldError(this);
   });
 
-  /** Returns true when the form is OK to send. */
   function validate() {
     CivicUI.clearFormErrors($form);
     var ok = true;
@@ -54,10 +38,7 @@ CivicApp.start(function () {
     return ok;
   }
 
-  /**
-   * Only follow ?next= if it points to THIS website.
-   * (Otherwise someone could send a link that redirects users to a fake site.)
-   */
+  // Only same-site redirects, so a crafted link can't send users to another site after login.
   function safeNextUrl() {
     var next = CivicUtils.getQueryParam("next");
     if (!next) return null;
@@ -87,18 +68,19 @@ CivicApp.start(function () {
           throw { message: "The server sent an unexpected response. Please try again." };
         }
 
-        // Save token + user (sessionStorage, or localStorage if "Remember me").
         CivicAuth.saveSession(data.token, data.user, $("#remember").is(":checked"));
         CivicAuth.setFlash("success", "Welcome back, " + data.user.full_name.split(" ")[0] + "!");
 
         var next = safeNextUrl();
-        // A normal user must not be sent to an admin page via ?next=.
+
+        // ROLE GUARD: a resident must not be sent into an admin page through ?next=.
         if (next && next.indexOf("/admin/") !== -1 && data.user.role !== "admin") next = null;
 
         window.location.href = next || CivicUtils.url(CivicAuth.homeFor(data.user));
       })
       .catch(function (err) {
         CivicUI.setButtonLoading($submit, false);
+        // Don't leave a wrong password sitting in the field.
         $password.val("");
 
         if (err.status === 401) {

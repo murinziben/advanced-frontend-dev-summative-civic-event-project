@@ -1,17 +1,3 @@
-/*
- * Signup page
- * ---------------------------------------------------------------
- * API: POST /api/auth/signup   body { full_name, email, password }
- * Success (201): data = { id, full_name, email, role }
- * Failure: 400 (weak password / missing field), 409 (email already used)
- *
- * The backend enforces the SAME password rule we check here
- * (backend/src/controllers/auth.controller.js → PASSWORD_REGEX):
- * min 8 chars, uppercase, lowercase, number and special character.
- *
- * SECURITY NOTE: the backend also accepts a "role" field on signup.
- * We deliberately NEVER send it, so every new account is a normal "user".
- */
 CivicApp.start(function () {
   var $form = $("#signup-form");
   var $name = $("#full_name");
@@ -24,7 +10,7 @@ CivicApp.start(function () {
   CivicAuthPages.initLogo();
   CivicAuthPages.initPasswordToggles();
 
-  /* ---------------- Password strength meter ---------------- */
+  // Same rule as the backend's PASSWORD_REGEX, so users see problems before submitting.
   var RULES = {
     length: function (p) { return p.length >= 8; },
     lower: function (p) { return /[a-z]/.test(p); },
@@ -33,7 +19,6 @@ CivicApp.start(function () {
     special: function (p) { return /[\W_]/.test(p); },
   };
 
-  /** Returns which rules pass, plus a 0–4 score for the bar. */
   function checkPassword(password) {
     var passed = {};
     var count = 0;
@@ -42,10 +27,10 @@ CivicApp.start(function () {
       if (passed[rule]) count++;
     });
     var score = 0;
-    if (password.length > 0) score = 1;          // something typed
-    if (count >= 3) score = 2;                    // fair
-    if (count === 5) score = 3;                   // meets the policy
-    if (count === 5 && password.length >= 12) score = 4; // strong
+    if (password.length > 0) score = 1;
+    if (count >= 3) score = 2;
+    if (count === 5) score = 3;
+    if (count === 5 && password.length >= 12) score = 4;
     return { passed: passed, allPassed: count === 5, score: score };
   }
 
@@ -88,7 +73,6 @@ CivicApp.start(function () {
     CivicUI.clearFieldError(this);
   });
 
-  /* ---------------- Validation ---------------- */
   function validate() {
     CivicUI.clearFormErrors($form);
     var ok = true;
@@ -118,7 +102,6 @@ CivicApp.start(function () {
     return ok;
   }
 
-  /* ---------------- Submit ---------------- */
   $form.on("submit", function (e) {
     e.preventDefault();
     if (!validate()) return;
@@ -129,12 +112,11 @@ CivicApp.start(function () {
     CivicApi.request({
       method: "POST",
       path: "/auth/signup",
-      // Only these three fields – never "role" (see note at the top).
+      // Never send "role": the backend would accept it and let anyone sign up as an admin.
       data: { full_name: $name.val().trim(), email: email, password: $password.val() },
       auth: false,
     })
       .then(function () {
-        // Brief: "On success redirect to login page with success toast."
         CivicAuth.setFlash("success", "Your account has been created. Please sign in.");
         window.location.href = CivicUtils.url("login.html?email=" + encodeURIComponent(email));
       })

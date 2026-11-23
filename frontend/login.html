@@ -4,25 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign in · CivicEvents</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
   <meta name="description" content="Sign in to CivicEvents to register for city events and see your notifications." />
 
-  <!-- Font: Plus Jakarta Sans (same as the design) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind CSS (Play CDN) + our design tokens -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="js/tailwind.config.js"></script>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 
-<!-- data-guard="guest": logged-in users are sent to their dashboard (see js/core/guards.js) -->
+<!-- Role guard: signed-in users are redirected to their dashboard (js/core/guards.js). -->
 <body data-root="./" data-guard="guest" data-page="login" class="min-h-screen bg-background">
   <a href="#main" class="skip-link">Skip to content</a>
 
   <div class="grid min-h-screen lg:grid-cols-2">
-    <!-- Left: form -->
     <main id="main" class="flex items-center justify-center px-4 py-12 sm:px-8">
       <div class="w-full max-w-md">
         <div id="auth-logo" class="mb-8"></div>
@@ -31,7 +29,6 @@
         <p class="mt-2 text-muted-foreground">Sign in to manage your events and notifications.</p>
 
         <form id="login-form" class="mt-8 space-y-5" novalidate>
-          <!-- Errors that aren't about one field (e.g. wrong password) appear here -->
           <div data-form-alert class="hidden"></div>
 
           <div>
@@ -75,7 +72,6 @@
       </div>
     </main>
 
-    <!-- Right: photo panel (decorative, hidden on small screens) -->
     <aside class="auth-photo relative hidden lg:block" aria-hidden="true">
       <div class="absolute inset-x-0 bottom-0 p-12 text-white">
         <p class="text-2xl font-bold leading-snug">“Over 18,000 residents joined a city event this year.”</p>
@@ -84,10 +80,9 @@
     </aside>
   </div>
 
-  <!-- Libraries -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-  <!-- Core (order matters) -->
+  <!-- Order matters: each script depends on the ones above it. -->
   <script src="js/config.js"></script>
   <script src="js/core/utils.js"></script>
   <script src="js/core/auth.js"></script>
@@ -98,7 +93,6 @@
   <script src="js/core/layout.js"></script>
   <script src="js/core/app.js"></script>
 
-  <!-- Page -->
   <script src="js/pages/auth-shared.js"></script>
   <script src="js/pages/login.js"></script>
 </body>
