@@ -8,8 +8,19 @@ window.CivicFileField = (function () {
     var rules = window.CivicConfig.UPLOADS[o.kind];
     var objectUrl = null;
     var valid = true;
+    var renamed = null;
 
-    $input.attr("accept", rules.extensions.join(","));
+    // WhatsApp and some recorders save MP3 audio as ".mpeg"; the backend only checks the
+    // extension, so the same bytes are sent under the name it accepts.
+    function normalise(file) {
+      var dot = file.name.lastIndexOf(".");
+      var ext = dot >= 0 ? file.name.slice(dot).toLowerCase() : "";
+      var target = (rules.aliases || {})[ext];
+      if (!target) return file;
+      return new File([file], file.name.slice(0, dot) + target, { type: "audio/mpeg", lastModified: file.lastModified });
+    }
+
+    $input.attr("accept", rules.extensions.concat(Object.keys(rules.aliases || {})).join(","));
 
     var hintId = $input.attr("id") + "-hint";
     if (!$("#" + hintId).length) {
@@ -46,6 +57,7 @@ window.CivicFileField = (function () {
     }
 
     function reset() {
+      renamed = null;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       objectUrl = null;
       valid = true;
@@ -56,8 +68,11 @@ window.CivicFileField = (function () {
 
     $input.on("change", function () {
       window.CivicUI.clearFieldError($input);
+      renamed = null;
       var file = this.files && this.files[0];
       if (!file) return reset();
+      var fixed = normalise(file);
+      if (fixed !== file) { renamed = fixed; file = fixed; }
 
       // Checking before upload avoids sending a large file the server would reject anyway.
       var error = U.validateFile(file, o.kind);
@@ -77,7 +92,7 @@ window.CivicFileField = (function () {
     reset();
 
     return {
-      getFile: function () { return ($input.get(0).files || [])[0] || null; },
+      getFile: function () { return renamed || ($input.get(0).files || [])[0] || null; },
       isValid: function () { return valid; },
       setProgress: function (percent) {
         var $p = $preview.find("[data-progress]").removeClass("hidden").attr("aria-valuenow", percent);
