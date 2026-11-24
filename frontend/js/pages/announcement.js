@@ -21,7 +21,7 @@ CivicApp.start(function () {
           (isAdmin ? CivicAdminLayout.statusBadge(item.published) : "") +
         "</div>" +
         '<h1 id="announcement-title" class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">' + esc(item.title) + "</h1>" +
-        '<p class="mt-2 text-muted-foreground">Issued by the City of Greenhill</p>' +
+        '<p class="mt-2 text-muted-foreground">Issued by the City of Kigali</p>' +
         '<section class="mt-8 rounded-xl border border-border bg-card p-5 shadow-card" aria-labelledby="listen-title">' +
           '<h2 id="listen-title" class="mb-3 text-sm font-semibold">Listen <span id="duration-label" class="font-normal text-muted-foreground"></span></h2>' +
           '<div id="player"></div>' +

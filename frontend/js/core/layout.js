@@ -328,7 +328,7 @@ window.CivicLayout = (function () {
       '<footer class="mt-auto border-t border-border bg-card">' +
         '<div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-3 lg:px-8">' +
           "<div>" + logoHtml() +
-            '<p class="mt-3 max-w-xs text-sm text-muted-foreground">The official portal for events, announcements and community life in the City of Greenhill.</p>' +
+            '<p class="mt-3 max-w-xs text-sm text-muted-foreground">The official portal for events, announcements and community life in the City of Kigali.</p>' +
           "</div>" +
           '<nav aria-label="Footer">' +
             '<h2 class="text-sm font-bold">Explore</h2>' +
@@ -349,7 +349,7 @@ window.CivicLayout = (function () {
           "</div>" +
         "</div>" +
         '<div class="border-t border-border py-5 text-center text-xs text-muted-foreground">' +
-          "© " + year + " City of Greenhill · Built to WCAG 2.1 AA accessibility guidelines" +
+          "© " + year + " City of Kigali · Built to WCAG 2.1 AA accessibility guidelines" +
         "</div>" +
       "</footer>";
     $("#site-footer").html(html);
