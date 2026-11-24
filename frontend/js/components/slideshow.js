@@ -1,6 +1,11 @@
 window.CivicSlideshow = (function () {
   var esc = function (v) { return window.CivicUtils.escapeHtml(v); };
-  var INTERVAL_MS = 6000;
+  var INTERVAL_MS = 4000;
+
+  // Local photos are stored relative to the frontend root, and admin pages live one folder deeper.
+  function srcOf(slide) {
+    return /^https?:/.test(slide.src) ? slide.src : window.CivicUtils.url(slide.src);
+  }
 
   var PAUSE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-3.5 w-3.5"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
   var PLAY_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-3.5 w-3.5"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z"/></svg>';
@@ -26,7 +31,7 @@ window.CivicSlideshow = (function () {
       return (
         '<div data-slide="' + i + '" role="img" aria-label="' + esc(s.caption) + '"' + (i === 0 ? "" : ' aria-hidden="true"') +
         ' class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ' + (i === 0 ? "opacity-100" : "opacity-0") + '"' +
-        (i === 0 ? ' style="background-image:url(\'' + s.src + '\')"' : "") +
+        (i === 0 ? ' style="background-image:url(\'' + srcOf(s) + '\')"' : "") +
         "></div>"
       );
     }).join("");
@@ -54,7 +59,7 @@ window.CivicSlideshow = (function () {
     // Load each photo only when it's about to be shown, so the page doesn't download every image up front.
     function ensureLoaded(i) {
       var $s = $slides.eq(i);
-      if (!$s.attr("style")) $s.css("background-image", "url('" + slides[i].src + "')");
+      if (!$s.attr("style")) $s.css("background-image", "url('" + srcOf(slides[i]) + "')");
     }
 
     function show(i) {
