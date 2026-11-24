@@ -5,6 +5,8 @@ Built with **HTML5, Tailwind CSS and jQuery only** (plus Chart.js for the admin 
 Design system: **Royal Blue + White** (`#2563EB` primary, `#172554` navy, `#F5F7FF` background), **Inter** font, Lucide-style outline icons.
 It consumes the provided Node.js/Express + PostgreSQL backend in `../backend`.
 
+**Demo video (5–7 min):** [Watch on Google Drive](https://drive.google.com/file/d/17rn7pLDZOiHt_KDF4X1eJl3PXAm3RLBj/view?usp=sharing)
+
 ---
 
 ## 1. Features
@@ -15,7 +17,7 @@ It consumes the provided Node.js/Express + PostgreSQL backend in `../backend`.
 | Events | Browse published events, search, filter by date / location / upcoming-past, pagination, event details, map link, register, cancel | Create / edit / delete events with image upload + preview, see registrants, see all ratings + average |
 | My events | Upcoming / Past / Cancelled tabs, cancel, rate after attending | – |
 | Feedback | One rating (1–5 stars) + comment per event, edit own rating | View every rating and the average |
-| Announcements | Audio player (play/pause, seek, current time/duration, volume), fallback text | Upload audio, publish/unpublish (optimistic switch), edit title, delete |
+| Announcements | Audio player (play/pause, seek, current time/duration, volume), fallback text | Upload audio, publish/unpublish (optimistic switch), edit title, replace recording, delete (from the list or the edit page) |
 | Promos | Video with **English captions on by default**, transcript, lazy-loaded thumbnails | Upload video + caption text, publish/unpublish, edit, delete |
 | Notifications | Bell with unread count, drawer with latest items, inbox with details and links to the related event/announcement/promo, mark read/unread | Delete notifications (inbox + admin page) |
 | Profile | View details, update name and email (confirmation + conflict message), role/status read-only | Same |
@@ -199,7 +201,7 @@ by reading the routes/controllers:
 | 7 | **Disabled accounts can still sign in** (no `is_active` check) | Status is shown and toggled; limitation noted on the Users page |
 | 8 | **Signup accepts a `role` field** | The signup page never sends it |
 | 9 | **Deleting an event that has registrations fails** (foreign key without cascade) | Friendly error: "can't be deleted because people have registered" |
-| 10 | Announcement **PUT ignores a new audio file**; no transcript/duration/category fields | Edit form only changes title/status; duration is read from the audio file; a "no transcript provided" note is shown |
+| 10 | Announcement **PUT ignores a new audio file**; no transcript/duration/category fields | Edit form changes title/status in place. Replacing the recording uploads it as a new announcement (POST) and deletes the old one only after the upload succeeds. Duration is read from the audio file; a "no transcript provided" note is shown |
 | 11 | Promos store **caption text, not a caption file** | A WebVTT captions track is generated in the browser from `caption_text` and shown by default |
 | 12 | List endpoints return unpublished items too | Filtered out for residents |
 | 13 | Docs: README says `DB_PASSWORD` (code uses `DB_PASS`), `CREATE DATABASE civic-events-db` needs quotes, `db:seed` file is missing, Postman `base_url` uses port 5000 | Corrected in section 2 above |
@@ -224,7 +226,7 @@ by reading the routes/controllers:
 
 ## 10. Image credits
 
-The home page hero and the admin dashboard banner are **slideshows of places in Rwanda** (auto-advance every 6 s,
+The home page hero and the admin dashboard banner are **slideshows of places in Rwanda** (auto-advance every 4 s,
 pause button, dots, pauses on hover/focus, and starts paused for users who prefer reduced motion).
 The photo list lives in `js/config.js` (`PHOTOS`, `HERO_SLIDES`, `BANNER_SLIDES`).
 
@@ -234,8 +236,9 @@ The photo list lives in `js/config.js` (`PHOTOS`, `HERO_SLIDES`, `BANNER_SLIDES`
 | Kigali skyline at sunset | Jean Claude Akarikumutima | Unsplash License |
 | Nyandungu Eco-Park, Kigali (aerial) | Protais Benjamin MUGENZI | Unsplash License |
 | Green hills and wetlands of Kigali | Protais Benjamin MUGENZI | Unsplash License |
-| Rice fields in rural Rwanda (also the sign-in panel) | Mad Knoxx Deluxe | Unsplash License |
+| Rice fields in rural Rwanda | Mad Knoxx Deluxe | Unsplash License |
 | Sunrise over the Rwandan countryside | maxime niyomwungeri | Unsplash License |
+| Amahoro Stadium at night, Sober Gen run on Car Free Day, Car Free Day workout, Sober Chou youth, Youth Special Umuganda (`assets/images/slides/`, also the sign-in and sign-up panels) | Shared on Rwandan public social media (Amahoro photo: @faustinnk) | Used for this non-commercial student demo only; not licensed for reuse |
 
 Logo, icon and favicon: `assets/images/logo.png`, `logo-icon.png`, `favicon.png`.
 
@@ -276,6 +279,8 @@ Test with **two accounts**: the admin (section 2, step 7) and a resident created
 ---
 
 ## 12. Demo video plan (5–7 minutes)
+
+**Watch the demo video:** [https://drive.google.com/file/d/17rn7pLDZOiHt_KDF4X1eJl3PXAm3RLBj/view?usp=sharing](https://drive.google.com/file/d/17rn7pLDZOiHt_KDF4X1eJl3PXAm3RLBj/view?usp=sharing)
 
 1. **Setup (1 min):** `.env`, migration in psql (`\dt`), `npm run dev` showing *Connected to PostgreSQL*, `js/config.js` base URL.
 2. **Resident (2 min):** signup with strength meter → login → events search/filter → event → register → My events → cancel → rate → announcement audio → promo with captions → notifications → profile email conflict.
