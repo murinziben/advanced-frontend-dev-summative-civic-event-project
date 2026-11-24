@@ -7,7 +7,11 @@ window.CivicAuthPages = (function () {
 
   function initLogo() {
     $("#auth-logo").html(
-      '<a href="' + window.CivicUtils.url("index.html") + '" class="inline-block">' +
+      // The logo alone isn't an obvious way back, so give visitors a clear text link.
+      '<a href="' + window.CivicUtils.url("index.html") + '" class="mb-6 flex w-fit items-center gap-1.5 rounded-md text-sm font-semibold text-muted-foreground hover:text-primary">' +
+        '<span aria-hidden="true">&larr;</span> Back to home' +
+      "</a>" +
+      '<a href="' + window.CivicUtils.url("index.html") + '" class="inline-block" tabindex="-1">' +
         '<img src="' + window.CivicUtils.url("assets/images/logo.png") + '" alt="CivicEvents – home" width="200" height="40" class="h-10 w-auto" />' +
       "</a>"
     );
